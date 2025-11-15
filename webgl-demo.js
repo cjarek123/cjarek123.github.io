@@ -82,6 +82,11 @@ function main() {
     drawScene(gl, programInfo, buffers, squareRotation);
     squareRotation += deltaTime;
 
+    const error = gl.getError();
+    if(error !== gl.NO_ERROR){
+      console.error("WebGL Error: ", error);
+    }
+
     requestAnimationFrame(render);
   }
   requestAnimationFrame(render);
