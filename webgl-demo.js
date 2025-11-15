@@ -5,15 +5,19 @@ let cubeRotation = 0.0;
 let deltaTime = 0;
 
 main();
+
+//
+// start here
+//
 function main() {
-  const canvas = document.querySelector("#gl-canvas");
+  const canvas = document.querySelector("#glcanvas");
   // Initialize the GL context
   const gl = canvas.getContext("webgl");
 
   // Only continue if WebGL is available and working
   if (gl === null) {
     alert(
-      "Unable to initialize WebGL. Your browser or machine may not support it.",
+      "Unable to initialize WebGL. Your browser or machine may not support it."
     );
     return;
   }
@@ -24,47 +28,53 @@ function main() {
   gl.clear(gl.COLOR_BUFFER_BIT);
 
   // Vertex shader program
+
   const vsSource = `
-    attribute vec4 aVertexPosition;
-    attribute vec4 aVertexColor;
+  attribute vec4 aVertexPosition;
+  attribute vec2 aTextureCoord;
 
-    uniform mat4 uModelViewMatrix;
-    uniform mat4 uProjectionMatrix;
+  uniform mat4 uModelViewMatrix;
+  uniform mat4 uProjectionMatrix;
 
-    varying highp vec2 vTextureCoord;
+  varying highp vec2 vTextureCoord;
 
-    void main(void) {
-      gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-      vTextureCoord = aTextureCoord;
-    }
-  `;
+  void main(void) {
+    gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+    vTextureCoord = aTextureCoord;
+  }
+`;
+
   // Fragment shader program
+
   const fsSource = `
-    varying highp vec2 vTextureCoord;
+  varying highp vec2 vTextureCoord;
 
-    uniform sampler2D uSampler;
+  uniform sampler2D uSampler;
 
-    void main(void) {
-      gl_FragColor = texture2D(uSampler, vTextureCoord);
-    }
-  `;
+  void main(void) {
+    gl_FragColor = texture2D(uSampler, vTextureCoord);
+  }
+`;
 
   // Initialize a shader program; this is where all the lighting
   // for the vertices and so forth is established.
   const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
 
   // Collect all the info needed to use the shader program.
-  // Look up which attribute our shader program is using
-  // for aVertexPosition, aVertexColor and also look up uniform locations.
+  // Look up which attributes our shader program is using
+  // for aVertexPosition, aVertexColor and also
+  // look up uniform locations.
   const programInfo = {
     program: shaderProgram,
     attribLocations: {
       vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
-      //vertexColor: gl.getAttribLocation(shaderProgram, "aVertexColor"),
       textureCoord: gl.getAttribLocation(shaderProgram, "aTextureCoord"),
     },
     uniformLocations: {
-      projectionMatrix: gl.getUniformLocation(shaderProgram, "uProjectionMatrix"),
+      projectionMatrix: gl.getUniformLocation(
+        shaderProgram,
+        "uProjectionMatrix"
+      ),
       modelViewMatrix: gl.getUniformLocation(shaderProgram, "uModelViewMatrix"),
       uSampler: gl.getUniformLocation(shaderProgram, "uSampler"),
     },
@@ -79,7 +89,6 @@ function main() {
   // Flip image pixels into the bottom-to-top order that WebGL expects.
   gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
-  // Draw the scene
   let then = 0;
 
   // Draw the scene repeatedly
@@ -90,11 +99,6 @@ function main() {
 
     drawScene(gl, programInfo, buffers, texture, cubeRotation);
     cubeRotation += deltaTime;
-
-    const error = gl.getError();
-    if(error !== gl.NO_ERROR){
-      console.error("WebGL Error: ", error);
-    }
 
     requestAnimationFrame(render);
   }
@@ -120,8 +124,8 @@ function initShaderProgram(gl, vsSource, fsSource) {
   if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
     alert(
       `Unable to initialize the shader program: ${gl.getProgramInfoLog(
-        shaderProgram,
-      )}`,
+        shaderProgram
+      )}`
     );
     return null;
   }
@@ -148,7 +152,7 @@ function loadShader(gl, type, source) {
 
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
     alert(
-      `An error occurred compiling the shaders: ${gl.getShaderInfoLog(shader)}`,
+      `An error occurred compiling the shaders: ${gl.getShaderInfoLog(shader)}`
     );
     gl.deleteShader(shader);
     return null;
@@ -187,7 +191,7 @@ function loadTexture(gl, url) {
     border,
     srcFormat,
     srcType,
-    pixel,
+    pixel
   );
 
   const image = new Image();
@@ -199,11 +203,11 @@ function loadTexture(gl, url) {
       internalFormat,
       srcFormat,
       srcType,
-      image,
+      image
     );
 
     // WebGL1 has different requirements for power of 2 images
-    // vs. non power of 2 images so check if the image is a
+    // vs non power of 2 images so check if the image is a
     // power of 2 in both dimensions.
     if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
       // Yes, it's a power of 2. Generate mips.
