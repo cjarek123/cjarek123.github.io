@@ -74,7 +74,7 @@ function main() {
   let then = 0;
 
   // Draw the scene repeatedly
-  function render(now){
+  function render(now) {
     now *= 0.001; // convert to seconds
     deltaTime = now - then;
     then = now;
