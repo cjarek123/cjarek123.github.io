@@ -85,7 +85,7 @@ function setPositionAttribute(gl, buffers, programInfo) {
 
 // Tell WebGL how to pull out the colors from the color buffer
 // into the vertexColor attribute.
-function setColorAttribute(gl, buffers, programInfo){
+function setColorAttribute(gl, buffers, programInfo) {
   const numComponents = 4;
   const type = gl.FLOAT;
   const normalize = false;
