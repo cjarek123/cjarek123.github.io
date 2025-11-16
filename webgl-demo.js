@@ -31,7 +31,7 @@ function main() {
 
   const vsSource = `
   attribute vec4 aVertexPosition;
-  attribute vec2 aTextureCoord;
+  attribute highp vec2 aTextureCoord;
 
   uniform mat4 uModelViewMatrix;
   uniform mat4 uProjectionMatrix;
