@@ -39,7 +39,7 @@ function main() {
   uniform mat4 uProjectionMatrix;
 
   varying highp vec2 vTextureCoord;
-  varying highp vec3 Lighting;
+  varying highp vec3 vLighting;
 
   void main(void) {
     gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
