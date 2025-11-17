@@ -95,18 +95,18 @@ function main(){
 
     // Position buffer binding
     gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
-    gl.enableVertexAttribArray(posLoc);
-    gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(programInfo.attribLocations.posLoc);
+    gl.vertexAttribPointer(programInfo.attribLocations.posLoc, 3, gl.FLOAT, false, 0, 0);
 
     // Color buffer binding
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.enableVertexAttribArray(colorLoc);
-    gl.vertexAttribPointer(colorLoc, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(programInfo.attribLocations.colorLoc);
+    gl.vertexAttribPointer(programInfo.attribLocations.colorLoc, 3, gl.FLOAT, false, 0, 0);
 
     //delta time in ms
     let deltaTime = Date.now() - startTime;
     //set time in seconds
-    gl.uniform1f(timeLoc, deltaTime/1000.0);
+    gl.uniform1f(programInfo.uniformLocations.timeLoc, deltaTime/1000.0);
 
     // Draw content
     gl.drawArrays(gl.TRIANGLES, 0, 3);
