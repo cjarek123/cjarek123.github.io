@@ -55,11 +55,11 @@ function main(){
   const programInfo = {
     program: shaderProgram,
     attribLocations:{
-      posLoc: gl.getAttribLocation(program, "aPosition"),
-      colorLoc: gl.getAttribLocation(program, "aColor"),
+      posLoc: gl.getAttribLocation(shaderProgram, "aPosition"),
+      colorLoc: gl.getAttribLocation(shaderProgram, "aColor"),
     },
     uniformLocations:{
-      timeLoc: gl.getUniformLocation(program, "uTime")
+      timeLoc: gl.getUniformLocation(shaderProgram, "uTime")
     }
   };
   
