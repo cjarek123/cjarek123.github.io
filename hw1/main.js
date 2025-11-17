@@ -1,7 +1,6 @@
 main();
 
 function main(){  
-  // --- WebGL init --- //
   const canvas = document.querySelector("#glcanvas");
   const vsEditor = document.querySelector("#vsEditor");
   const fsEditor = document.querySelector("#fsEditor");
@@ -48,7 +47,22 @@ function main(){
   vsEditor.value = vsSource;
   fsEditor.value = fsSource;
 
-  let program, posLoc, colorLoc, timeLoc;
+  //Initialize shader program
+  const shaderProgram = initShaderProgram(gl, vsEditor, fsEditor);
+
+  //Collet all the data to use the shader program
+  const programInfo = {
+    program: shaderProgram,
+    attribLocations:{
+      posLoc: gl.getAttribLocation(program, "aPosition"),
+      colorLoc: gl.getAttribLocation(program, "aColor"),
+    },
+    uniformLocations:{
+      timeLoc: gl.getUniformLocation(program, "uTime")
+    }
+  };
+
+
   let posBuffer, colorBuffer;
   
   //Triangle script here
@@ -102,21 +116,13 @@ function main(){
 
   initBuffers();
 
-  function initShaderProgram() {
-    try {
-      program = createProgram(gl, vsEditor.value, fsEditor.value);
-      gl.useProgram(program);
-      posLoc = gl.getAttribLocation(program, "aPosition");
-      colorLoc = gl.getAttribLocation(program, "aColor");
-      timeLoc = gl.getUniformLocation(program, "uTime");
-    } catch (e) { console.error(e); }
-  }
 
-  initShaderProgram();
+
+  initShaderProgram(gl, vsEditor, fsEditor);
 
   //hot compile when any input in the playground text area
-  vsEditor.onkeyup = initShaderProgram;
-  fsEditor.onkeyup = initShaderProgram;
+  vsEditor.onkeyup = initShaderProgram(gl, vsEditor, fsEditor);
+  fsEditor.onkeyup = initShaderProgram(gl, vsEditor, fsEditor);
 
   let startTime = Date.now();
   function render() {
@@ -148,4 +154,18 @@ function main(){
   window.onload = function () {
     setInterval(render, 30);
   };
+}
+
+function initShaderProgram(gl, vsEditor, fsEditor){
+  const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsEditor.value);
+  const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsEditor.value);
+
+  //Create the shader program
+  const shaderProgram = gl.createProgram(gl, vsEditor.value, fsEditor.value);
+  gl.useProgram(shaderProgram);
+
+  if(!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)){
+    throw new Error(gl.getProgramInfoLog(shaderProgram));
+  }
+  return shaderProgram;
 }
