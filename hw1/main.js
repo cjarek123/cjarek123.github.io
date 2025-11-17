@@ -3,8 +3,8 @@ main();
 function main(){  
   // --- WebGL init --- //
   const canvas = document.getElementById("glcanvas");
-  const vsEditor = document.getElementById("vertEditor");
-  const fsEditor = document.getElementById("fragEditor");
+  const vsEditor = document.getElementById("vsEditor");
+  const fsEditor = document.getElementById("fsEditor");
 
   //Initialize the GL context
   const gl = canvas.getContext("webgl2");
