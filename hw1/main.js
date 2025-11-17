@@ -123,9 +123,14 @@ function main(){
 }
 
 function initShaderProgram(gl, vsEditor, fsEditor){
+  const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+  const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
   //Create the shader program
-  const program = gl.createProgram(gl, vsEditor.value, fsEditor.value);
-  gl.useProgram(program);
+  const shaderProgram = gl.createProgram();
+  gl.attachShader(shaderProgram, vertexShader);
+  gl.attachShader(shaderProgram, fragmentShader);
+  gl.linkProgram(shaderProgram);
 
   if(!gl.getProgramParameter(program, gl.LINK_STATUS)){
     throw new Error(gl.getProgramInfoLog(program));
