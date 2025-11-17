@@ -2,9 +2,9 @@ main();
 
 function main(){  
   // --- WebGL init --- //
-  const canvas = document.querySelector("glcanvas");
-  const vsEditor = document.querySelector("vsEditor");
-  const fsEditor = document.querySelector("fsEditor");
+  const canvas = document.querySelector("#glcanvas");
+  const vsEditor = document.querySelector("#vsEditor");
+  const fsEditor = document.querySelector("#fsEditor");
 
   //Initialize the GL context
   const gl = canvas.getContext("webgl2");
