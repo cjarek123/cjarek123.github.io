@@ -87,7 +87,7 @@ function main(){
 
   // --- Render --- //
   let startTime = Date.now();
-  function render() {
+  function render(){
     //clear the canvas
     gl.clearColor(0, 0, 0, 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -124,8 +124,8 @@ function initShaderProgram(gl, vsEditor, fsEditor){
 
   //Create the shader program
   const shaderProgram = gl.createProgram();
-  gl.attatchShader(shaderProgram, vertexShader);
-  gl.attatchShader(shaderProgram, fragmentShader);
+  gl.attachShader(shaderProgram, vertexShader);
+  gl.attachShader(shaderProgram, fragmentShader);
   gl.linkProgram(shaderProgram);
 
   if(!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)){
