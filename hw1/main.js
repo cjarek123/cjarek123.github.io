@@ -1,5 +1,6 @@
-main();
+import { initBuffers } from "./buffers.js";
 
+main();
 function main(){  
   const canvas = document.querySelector("#glcanvas");
   const vsEditor = document.querySelector("#vsEditor");
@@ -61,12 +62,8 @@ function main(){
       timeLoc: gl.getUniformLocation(program, "uTime")
     }
   };
-
-
-  let posBuffer, colorBuffer;
   
-  //Triangle script here
-  // --- Triangle ---
+  // --- Init Primitives --- //
   const positions = new Float32Array([
     0.0,  1.0, 0.0,  // vertex 1
     -1.0, 0.0, 0.0,  // vertex 2
@@ -79,51 +76,16 @@ function main(){
     0.0, 0.0, 1.0   // Blue
   ]);
   
-  function createShader(gl, type, source) {
-    let shader = gl.createShader(type);
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      throw new Error(gl.getShaderInfoLog(shader));
-    }
-    return shader;
-  }
+  // --- Init Buffers --- //
+  const buffers = initBuffers(gl, positions, colors);
+  const posBuffer = buffers.posBuffer;
+  const colorBuffer = buffers.colorBuffer;
 
-  function createProgram(gl, vsSource, fsSource) {
-    let vs = createShader(gl, gl.VERTEX_SHADER, vsSource);
-    let fs = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
-    let prog = gl.createProgram();
-    gl.attachShader(prog, vs);
-    gl.attachShader(prog, fs);
-    gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-      throw new Error(gl.getProgramInfoLog(prog));
-    }
-    return prog;
-  }
-
-
-  // --- Buffers ---
-  function initBuffers() {
-    posBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
-
-    colorBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
-  }
-
-  initBuffers();
-
-
-
-  initShaderProgram(gl, vsEditor, fsEditor);
-
-  //hot compile when any input in the playground text area
+  // --- Init EventListners --- //
   vsEditor.onkeyup = initShaderProgram(gl, vsEditor, fsEditor);
   fsEditor.onkeyup = initShaderProgram(gl, vsEditor, fsEditor);
 
+  // --- Render --- //
   let startTime = Date.now();
   function render() {
     //clear the canvas
@@ -161,11 +123,24 @@ function initShaderProgram(gl, vsEditor, fsEditor){
   const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsEditor.value);
 
   //Create the shader program
-  const shaderProgram = gl.createProgram(gl, vsEditor.value, fsEditor.value);
-  gl.useProgram(shaderProgram);
+  const shaderProgram = gl.createProgram();
+  gl.attatchShader(shaderProgram, vertexShader);
+  gl.attatchShader(shaderProgram, fragmentShader);
+  gl.linkProgram(shaderProgram);
 
   if(!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)){
     throw new Error(gl.getProgramInfoLog(shaderProgram));
   }
   return shaderProgram;
+}
+
+function loadShader(gl, type, source) {
+  let shader = gl.createShader(type);
+  gl.shaderSource(shader, source);
+  gl.compileShader(shader);
+
+  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+    throw new Error(gl.getShaderInfoLog(shader));
+  }
+  return shader;
 }
