@@ -165,15 +165,12 @@ function loadShader(gl, type, source) {
   const shader = gl.createShader(type);
 
   // Send the source to the shader object
-
   gl.shaderSource(shader, source);
 
   // Compile the shader program
-
   gl.compileShader(shader);
 
   // See if it compiled successfully
-
   if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
     alert(
       `An error occurred compiling the shaders: ${gl.getShaderInfoLog(shader)}`
@@ -238,7 +235,6 @@ function setupVideo(url) {
 
   // Waiting for these 2 events ensures
   // there is data in the video
-
   video.addEventListener("playing", () => {
     playing = true;
     checkReady();
