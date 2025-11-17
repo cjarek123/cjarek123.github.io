@@ -6,10 +6,6 @@ import {} from "./myBuffers.js";
 main();
 
 function main(){
-  //const canvas = document.querySelector("glcanvas");
-  const vertexShader = document.querySelector("#vertEditor");
-  const fragShader = document.querySelector("#fragEditor");
-  
   const vsSource = `#version 300 es
     in vec3 aPosition;
     in vec3 aColor;
@@ -210,8 +206,8 @@ function main(){
 
     let vertEditor = document.getElementById("vertEditor");
     let fragEditor = document.getElementById("fragEditor");
-    vertEditor.value = document.getElementById("vertex-shader").textContent;
-    fragEditor.value = document.getElementById("fragment-shader").textContent;
+    vertEditor.value = vsSource;
+    fragEditor.value = fsSource;
 
     let program, posLoc, colorLoc, uMVM, uPM, uMTM;
     let vbo, nbo, ibo;
