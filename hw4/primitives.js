@@ -40,7 +40,12 @@ function generateCube(size){
     colors[offset + 2] = 0.25;
   }
 
-  return [vertices, colors, indices, normals];
+  return {
+    vertices: vertices,
+    normals: normals,
+    colors: colors,
+    indices: indices
+  };
 }
 
 function generateCylinder(r, h, n = 64){
@@ -130,7 +135,12 @@ function generateCylinder(r, h, n = 64){
     indices[index++] = nextFace*2 + 1;
   }
 
-  return [vertices, colors, indices, normals];
+  return {
+    vertices: vertices,
+    normals: normals,
+    colors: colors,
+    indices: indices
+  };
 }
 
 function generateCone(r, h, n = 64){
@@ -216,7 +226,12 @@ function generateCone(r, h, n = 64){
     indices[index++] = baseIndex;
   }
 
-  return [vertices, colors, indices, normals];
+  return {
+    vertices: vertices,
+    normals: normals,
+    colors: colors,
+    indices: indices
+  };
 }
 
 // I learned this method of generating a sphere's vertices and indices from:
@@ -277,16 +292,26 @@ function generateSphere(r, n = 64){
       indices[offset + 5] = sixth;
     }
   }
-  return [vertices, colors, indices, normals];
+
+  return {
+    vertices: vertices,
+    normals: normals,
+    colors: colors,
+    indices: indices
+  };
 }
 
-base = generateCylinder(3, 0.5);
-arm1 = generateCylinder(0.5, 5);
-arm2 = generateCylinder(0.5, 4);
-hand = generateSphere(0.5);
-finger1 = generateCone(0.2, 1);
-finger2 = generateCone(0.2, 1);
-finger3 = generateCone(0.2, 1);
-testCube = generateCube(2);
+function initPrimitives(){
+  base = generateCylinder(3, 0.5);
+  arm1 = generateCylinder(0.5, 5);
+  arm2 = generateCylinder(0.5, 4);
+  hand = generateSphere(0.5);
+  finger1 = generateCone(0.2, 1);
+  finger2 = generateCone(0.2, 1);
+  finger3 = generateCone(0.2, 1);
+  testCube = generateCube(2);
 
-const objects = [base, arm1, arm2, hand, finger1, finger2, finger3, testCube];
+  return primitives = [base, arm1, arm2, hand, finger1, finger2, finger3, testCube];
+}
+
+export {initPrimitives};
