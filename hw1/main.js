@@ -49,7 +49,7 @@ function main(){
   fsEditor.value = fsSource;
 
   //Initialize shader program
-  const shaderProgram = initShaderProgram(gl, vsEditor, fsEditor);
+  const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
 
   //Collet all the data to use the shader program
   let posLoc = gl.getAttribLocation(shaderProgram, "aPosition");
@@ -86,8 +86,8 @@ function main(){
   const colorBuffer = buffers.colorBuffer;
 
   // --- Init EventListners --- //
-  vsEditor.onkeyup = initShaderProgram(gl, vsEditor, fsEditor);
-  fsEditor.onkeyup = initShaderProgram(gl, vsEditor, fsEditor);
+  vsEditor.onkeyup = initShaderProgram(gl, vsEditor.value, fsEditor.value);
+  fsEditor.onkeyup = initShaderProgram(gl, vsEditor.value, fsEditor.value);
 
   // --- Render --- //
   let startTime = Date.now();
@@ -122,7 +122,7 @@ function main(){
   };
 }
 
-function initShaderProgram(gl, vsEditor, fsEditor){
+function initShaderProgram(gl, vsSource, fsSource){
   const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
   const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
 
