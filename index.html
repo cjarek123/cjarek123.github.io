@@ -39,8 +39,9 @@
         <textarea id="fragEditor"></textarea>
       </div>
     </div>
-    <div>
-      <canvas id="glcanvas" width="550" height="550"></canvas>
+    <div style="display: flex; flex-direction: column;">
+      <div><canvas id="glcanvas" width="550" height="550"></canvas></div>
+      <div><meter id="charge-meter" value ="0" min="0" max="1" low="0.3" high="0.7" optimum="0.8" style="width: 550px; height: 50px;"></meter></div>
     </div>
   </div>
   <br>
@@ -61,7 +62,7 @@
             <input type="range" min="0", max="1", step="0.01", value="1", class="slider", id="slider-ka">
           </div></td>
           <td>Ambient color:</td>
-          <td><input type="color" id="colorSelectorAmbient" value="#ff0000">
+          <td><input type="color" id="colorSelectorAmbient" value="#ffffff">
           
             <td colspan="3">Light position:</td>
         </tr>
@@ -72,7 +73,7 @@
             <input type="range" min="0", max="1", step="0.01", value="1", class="slider", id="slider-kd">
           </div></td>
           <td>Diffuse Color:</td>
-          <td><input type="color" id="colorSelectorDiffuse", value="#ff0000"></td>
+          <td><input type="color" id="colorSelectorDiffuse", value="#ffffff"></td>
           
           <td>X:</td>
           <td id="slider-x-value" width="30px">1</td>
@@ -87,7 +88,7 @@
             <input type="range" min="0", max="1", step="0.01", value="1", class="slider", id="slider-ks">
           </div></td>
           <td>Specular Color:</td>
-          <td><input type="color" id="colorSelectorSpecular", value="#ff0000"></td>
+          <td><input type="color" id="colorSelectorSpecular", value="#ffffff"></td>
           
           <td>Y:</td>
           <td id="slider-y-value"  width="30px">1</td>
@@ -186,6 +187,7 @@ void main() {
   <script src="transformations.js"></script>
   <script src="myTransformations.js"></script>
   <script src="myBuffers.js"></script>
+  <script src="fishingRod.js"></script>
 
   <script>
     //I wasn't sure where else to link this source b/c the shader code is all over the place
@@ -442,6 +444,33 @@ void main() {
       }
     });
 
+    ////////////////////////////////////////////////////////////////////////////////
+    //                               CHARGE METER
+    ////////////////////////////////////////////////////////////////////////////////
+    const meter = document.getElementById("charge-meter");
+    const rod = new fishingRod();
+    let chargeInterval;
+
+    document.addEventListener('keydown', e=> {
+      if(e.code === "Space" && !(rod.state == fishingRod.CHARGING)){
+        rod.state = fishingRod.CHARGING;
+
+        chargeInterval = setInterval(() => {
+          meter.value = Math.min(meter.value + 0.02, meter.max);
+          rod.charge = meter.value;
+        }, 16);
+      }
+    });
+    document.addEventListener('keyup', e=> {
+      if(e.code === "Space" && rod.state == fishingRod.CHARGING){
+        rod.state = fishingRod.RELEASING;
+        clearInterval(chargeInterval);
+        //launch the bobber here.
+        meter.value = 0;
+        rod.charge = 0;
+      }
+    })
+
     let fov = Math.PI / 4, aspect = canvas.width / canvas.height, zNear = 0.1, zFar = 100;
     let f = 1 / Math.tan(fov / 2);
     let proj = new Float32Array([
@@ -451,6 +480,9 @@ void main() {
     let startTime = Date.now();
 
     function render() {
+      rod.update();
+      //console.log(rod.state);
+
       gl.enable(gl.DEPTH_TEST);
       gl.clearColor(0, 0, 0, 1);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);

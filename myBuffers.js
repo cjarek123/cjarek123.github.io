@@ -190,7 +190,7 @@ function bindMyBuffers(buffers, deltaTime, x, y, a, grab, modelViewMatrix, model
     bobberRing.setParent(bobberSphere);
 
     //Rod Base/Arm
-    rodBase.localMatrix = myRotateX(Math.sin(deltaTime*0.001), rodBase.localMatrix);
+    rodBase.localMatrix = myRotateX(rod.charge*Math.PI/2, rodBase.localMatrix);
     rodBase.localMatrix = myRotateY(Math.PI/8, rodBase.localMatrix);
     rodBase.localMatrix = myTranslate(5, -2.0, 0, rodBase.localMatrix);
 
