@@ -1,0 +1,106 @@
+//Fishing Rod
+// let rodBase = new Cylinder(0.2, 3.0, MATERIALS.DIFFUSE, 0.0, 0.0);
+// let rodArm = new Cylinder(0.1, 10.0, MATERIALS.DIFFUSE, 0.0, 0.0);
+
+// let = coreCylinder = generateCylinder(0.5, 1.0);
+// let = coreSphere = generateSphere(0.5, 16);
+
+// let = handleBase = generateCylinder(0.1, 0.5);
+// let = handleArm = generateCylinder(0.1, 0.5);
+// let = handleGrip = generateCylinder(0.1, 0.5);
+
+// let = ring1 = generateTorus(0.2, 0.03);
+// let = ring2 = generateTorus(0.2, 0.03);
+// let = ring3 = generateTorus(0.2, 0.03);
+// let = ring4 = generateTorus(0.2, 0.03);
+// let = ring5 = generateTorus(0.2, 0.03);
+
+// let = stringA = generateCylinder(0.01, 2.0);
+// let = stringB = generateCylinder(0.01, 8.0);
+// let = stringC = generateCylinder(0.01, 1.0);
+
+// let = bobberSphere = generateSphere(0.2);
+// let = bobberHead = generateCylinder(0.075, 0.05);
+// let = bobberRing = generateTorus(0.2, 0.02);
+
+// //Dock
+// let = plank1 = generateCube(1.0);
+// let = plank2 = generateCube(1.0);
+// let = plank3 = generateCube(1.0);
+// let = plank4 = generateCube(1.0);
+// let = plank5 = generateCube(1.0);
+
+// //River
+// let = river = generateCube(1.0);
+
+/**
+ * Stores the entities of the game
+ */
+class Entities {
+    constructor() {
+        this.entities = []
+    }
+
+    addEntity(entity) {
+        this.entities.push(entity)
+    }
+
+    /**
+     * update the animations of all entity
+     */
+    animate(deltaTime) {
+        for (const entity of this.entities) {
+            entity.animate(deltaTime)
+        }
+    }
+}
+
+/**
+ * Entity Base Class
+ */
+class Entity {
+    constructor() {
+        if (new.target === Entity) {
+            throw new Error("Cannot instantiate abstract class Entity directly");
+        }
+    }
+
+    animate(deltaTime) {
+        throw new Error("Entity.animate(deltaTime) must be implemented by subclass");
+    }
+}
+
+/**
+ * Fish entity
+ */
+class Fish extends Entity{
+    constructor(color) {
+        super();
+        // primitives
+        let fishBody = new Ellipsoid(color, new Vec3(.5,.5,.5), MATERIALS.DIFFUSE, .0, .0);
+        let fishTail = new Cone(color, 1.0, 1.0, MATERIALS.DIFFUSE, .0, .0);
+        // nodes
+        this.fishBodyNode = new Node(fishBody);
+        this.fishTailNode = new Node(fishTail);
+        // attach tail to body
+        this.fishTailNode.setParent(this.fishBodyNode);
+        // fish body
+        this.fishBodyNode.localMatrix = this.fishBodyNode.localMatrix.translate(-3.0, 0.0, 0.0);
+        this.fishBodyNode.localMatrix = this.fishBodyNode.localMatrix.scale(2.0, 1.0, 0.6);
+        // fish tail
+        this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.rotateZ(-Math.PI/2);
+        this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.scale(0.5, 1.0, 1.0/0.6);
+        this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.scale(1.0, 1.0, 0.05);
+        this.fishBodyNode.updateWorldMatrix();
+        this.nodes = [
+            this.fishBodyNode, this.fishTailNode
+        ]
+    }
+
+    animate(deltaTime) {
+        // fish tail flapping
+        this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.rotateY(0.5*Math.sin(deltaTime*0.01));
+        this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.translate(-0.8, 0.0, 0.5*Math.sin(deltaTime*0.01));
+        this.fishBodyNode.updateWorldMatrix();
+    }
+}
