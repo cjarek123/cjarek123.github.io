@@ -133,7 +133,7 @@ function bindMyBuffers(buffers, deltaTime, x, y, a, grab, modelViewMatrix, model
     ];
 
     //RIVER
-    river.localMatrix = myScale(100.0, 0.1, 30.0, river.localMatrix);
+    river.localMatrix = myScale(100.0, 0.1, 50.0, river.localMatrix);
     river.localMatrix = myTranslate(0, -2.5, -10, river.localMatrix);
     river.updateWorldMatrix();
 

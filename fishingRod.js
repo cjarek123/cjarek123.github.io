@@ -44,11 +44,17 @@ class fishingRod {
         this.bobberY = this.charge*this.launchSpdY*dt + 0.5*this.g*dt*dt;
         this.bobberZ = this.charge*this.launchSpdZ*dt;
 
+        if(this.bobberY <= -13.3){
+          this.bobberY = -13.3;
+          this.state = fishingRod.FISHING;
+        }
 
 
       break;
       case fishingRod.FISHING:
         console.log("FISHING");
+        this.bobberY = -13.3+Math.sin(Date.now()*0.005)*0.1;
+
       break;
       case fishingRod.REELING:
         console.log("REELING");
