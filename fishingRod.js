@@ -14,7 +14,7 @@ class fishingRod {
     this.launchSpdX = 0.0;
     this.launchSpdY = 10.0;
     this.launchSpdZ = -10.0;
-    this.g = -9.0;
+    this.g = -10.0;
     this.startTime = 0.0;
   }
 
@@ -44,8 +44,8 @@ class fishingRod {
         this.bobberY = this.charge*this.launchSpdY*dt + 0.5*this.g*dt*dt;
         this.bobberZ = this.charge*this.launchSpdZ*dt;
 
-        if(this.bobberY <= -13.3){
-          this.bobberY = -13.3;
+        if(this.bobberY <= -13.0){
+          this.bobberY = -13.0;
           this.state = fishingRod.FISHING;
         }
 
@@ -53,7 +53,7 @@ class fishingRod {
       break;
       case fishingRod.FISHING:
         console.log("FISHING");
-        this.bobberY = -13.3+Math.sin(Date.now()*0.005)*0.1;
+        this.bobberY = -13.0+Math.sin(Date.now()*0.005)*0.1;
 
       break;
       case fishingRod.REELING:

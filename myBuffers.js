@@ -68,6 +68,8 @@ class Node{
     }
 }
 
+const fishes = [];
+
 function bindMyBuffers(buffers, deltaTime, x, y, a, grab, modelViewMatrix, modelTransformationMatrix){
     //Fishing Rod
     const coreCylinder = new Node(buffers[0]);
@@ -88,10 +90,6 @@ function bindMyBuffers(buffers, deltaTime, x, y, a, grab, modelViewMatrix, model
     const bobberHead = new Node(buffers[17]);
     const bobberSphere = new Node(buffers[18]);
     const bobberRing = new Node(buffers[19]);
-
-    //Fish
-    const fishBody = new Node(buffers[15]);
-    const fishTail = new Node(buffers[16]);
 
     //Dock
     const plank1 = new Node(buffers[20]);
@@ -119,8 +117,6 @@ function bindMyBuffers(buffers, deltaTime, x, y, a, grab, modelViewMatrix, model
         stringA,
         stringB,
         stringC,
-        fishBody,
-        fishTail,
         bobberHead,
         bobberSphere,
         bobberRing,
@@ -132,9 +128,57 @@ function bindMyBuffers(buffers, deltaTime, x, y, a, grab, modelViewMatrix, model
         river
     ];
 
+    //FISH
+    let numberOfFish = 6;
+    if(fishes.length < numberOfFish){    
+        for(i = fishes.length; i < numberOfFish; i++){
+            const newFish = new fish();
+            const fishBody = new Node(buffers[15]);
+            const fishTail = new Node(buffers[16]);
+            fishTail.setParent(fishBody);
+            fishes.push({fish: newFish, body:fishBody, tail:fishTail});
+        }
+    }
+
+    for(i = 0; i < fishes.length; i++){
+        let fishData = fishes[i].fish;
+        let fishBody = fishes[i].body;
+        let fishTail = fishes[i].tail;
+
+        fishData.update();
+        fishBody.localMatrix = new Float32Array([
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+        ]);
+        fishTail.localMatrix = new Float32Array([
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+        ]);
+                
+        //Fish Body
+        fishBody.localMatrix = myScale(2.0, 1.0, 0.6, fishBody.localMatrix);
+        fishBody.localMatrix = myScale(fishData.size, fishData.size, fishData.size, fishBody.localMatrix);
+        fishBody.localMatrix = myTranslate(fishData.x, fishData.y, fishData.z, fishBody.localMatrix);
+        //fishBody.localMatrix = myRotateY(deltaTime*0.001, fishBody.localMatrix);
+        //Fish Tail
+        fishTail.localMatrix = myRotateZ(-Math.PI/2, fishTail.localMatrix);
+        fishTail.localMatrix = myScale(0.5, 1.0, 1/0.6, fishTail.localMatrix);
+        fishTail.localMatrix = myScale(1.0, 1.0, 0.05, fishTail.localMatrix);
+        fishTail.localMatrix = myRotateY(0.5*Math.sin(deltaTime*0.01), fishTail.localMatrix);
+        fishTail.localMatrix = myTranslate(-0.8, 0.0, 0.5*Math.sin(deltaTime*0.01), fishTail.localMatrix);
+        
+        fishBody.updateWorldMatrix();
+        nodes.push(fishBody);
+        nodes.push(fishTail);
+    }
+
     //RIVER
     river.localMatrix = myScale(100.0, 0.1, 50.0, river.localMatrix);
-    river.localMatrix = myTranslate(0, -2.5, -10, river.localMatrix);
+    river.localMatrix = myTranslate(0, 0, -10, river.localMatrix);
     river.updateWorldMatrix();
 
     //DOCK
@@ -144,31 +188,13 @@ function bindMyBuffers(buffers, deltaTime, x, y, a, grab, modelViewMatrix, model
     plank2.setParent(plank1);
 
     plank1.localMatrix = myScale(8.0, 0.5, 1.0, plank1.localMatrix);
-    plank1.localMatrix = myTranslate(0, -2, 1.6, plank1.localMatrix);
+    plank1.localMatrix = myTranslate(0, 0.5, 3, plank1.localMatrix);
     plank2.localMatrix = myTranslate(0, 0, -1.2, plank2.localMatrix);
     plank3.localMatrix = myTranslate(0, 0, -1.2, plank3.localMatrix);
     plank4.localMatrix = myTranslate(0, 0, -1.2, plank4.localMatrix);
     plank5.localMatrix = myTranslate(0, 0, -1.2, plank5.localMatrix);
 
     plank1.updateWorldMatrix();
-
-    //FISH
-    fishTail.setParent(fishBody);
-
-    //Fish Body
-    fishBody.localMatrix = myTranslate(-3, 0, 0, fishBody.localMatrix);
-    fishBody.localMatrix = myScale(2.0, 1.0, 0.6, fishBody.localMatrix);
-    //fishBody.localMatrix = myRotateY(deltaTime*0.001, fishBody.localMatrix);
-
-    //Fish Tail
-    fishTail.localMatrix = myRotateZ(-Math.PI/2, fishTail.localMatrix);
-    fishTail.localMatrix = myScale(0.5, 1.0, 1/0.6, fishTail.localMatrix);
-    fishTail.localMatrix = myScale(1.0, 1.0, 0.05, fishTail.localMatrix);
-    fishTail.localMatrix = myRotateY(0.5*Math.sin(deltaTime*0.01), fishTail.localMatrix);
-    fishTail.localMatrix = myTranslate(-0.8, 0.0, 0.5*Math.sin(deltaTime*0.01), fishTail.localMatrix);
-    
-    fishBody.updateWorldMatrix();
-
 
     //FISHING ROD
     handleGrip.setParent(handleArm);
@@ -194,7 +220,7 @@ function bindMyBuffers(buffers, deltaTime, x, y, a, grab, modelViewMatrix, model
         rodBase.localMatrix = myRotateX(rod.charge*Math.PI/2, rodBase.localMatrix);
     }
     rodBase.localMatrix = myRotateY(Math.PI/16, rodBase.localMatrix);
-    rodBase.localMatrix = myTranslate(5, -2.0, 0, rodBase.localMatrix);
+    rodBase.localMatrix = myTranslate(3, 0, 0, rodBase.localMatrix);
 
     rodArm.localMatrix = myTranslate(0, 3.0, 0, rodArm.localMatrix);
 
