@@ -266,7 +266,7 @@ function bindMyBuffers(buffers, deltaTime, x, y, a, grab, modelViewMatrix, model
     //Handle Base/Arm/Grip
     handleBase.localMatrix = myRotateZ(Math.PI/2, handleBase.localMatrix);
     //USE handleBase.localMatrix = myRotateX() TO ANIMATE THE HANDLE SPINNING
-    handleBase.localMatrix = myRotateX(-deltaTime*0.01/Math.PI, handleBase.localMatrix);
+    //handleBase.localMatrix = myRotateX(-deltaTime*0.01/Math.PI, handleBase.localMatrix);
     handleBase.localMatrix = myTranslate(-0.5, 0.5, 0, handleBase.localMatrix);
 
     handleArm.localMatrix = myRotateZ(Math.PI/2, handleArm.localMatrix);
