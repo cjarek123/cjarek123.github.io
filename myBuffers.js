@@ -144,11 +144,11 @@ function bindMyBuffers(buffers, deltaTime, x, y, a, grab, modelViewMatrix, model
     plank2.setParent(plank1);
 
     plank1.localMatrix = myScale(8.0, 0.5, 1.0, plank1.localMatrix);
-    plank1.localMatrix = myTranslate(0, -2, 2.5, plank1.localMatrix);
-    plank2.localMatrix = myTranslate(0, 0, -2.0, plank2.localMatrix);
-    plank3.localMatrix = myTranslate(0, 0, -2.0, plank3.localMatrix);
-    plank4.localMatrix = myTranslate(0, 0, -2.0, plank4.localMatrix);
-    plank5.localMatrix = myTranslate(0, 0, -2.0, plank5.localMatrix);
+    plank1.localMatrix = myTranslate(0, -2, 1.6, plank1.localMatrix);
+    plank2.localMatrix = myTranslate(0, 0, -1.2, plank2.localMatrix);
+    plank3.localMatrix = myTranslate(0, 0, -1.2, plank3.localMatrix);
+    plank4.localMatrix = myTranslate(0, 0, -1.2, plank4.localMatrix);
+    plank5.localMatrix = myTranslate(0, 0, -1.2, plank5.localMatrix);
 
     plank1.updateWorldMatrix();
 
@@ -185,13 +185,15 @@ function bindMyBuffers(buffers, deltaTime, x, y, a, grab, modelViewMatrix, model
     ring5.setParent(rodArm);
     coreCylinder.setParent(rodBase);
     rodArm.setParent(rodBase);    
-    bobberHead.setParent(stringC);
+    bobberHead.setParent(stringB);
     bobberSphere.setParent(bobberHead);
     bobberRing.setParent(bobberSphere);
 
     //Rod Base/Arm
-    rodBase.localMatrix = myRotateX(rod.charge*Math.PI/2, rodBase.localMatrix);
-    rodBase.localMatrix = myRotateY(Math.PI/8, rodBase.localMatrix);
+    if(rod.state == fishingRod.CHARGING){
+        rodBase.localMatrix = myRotateX(rod.charge*Math.PI/2, rodBase.localMatrix);
+    }
+    rodBase.localMatrix = myRotateY(Math.PI/16, rodBase.localMatrix);
     rodBase.localMatrix = myTranslate(5, -2.0, 0, rodBase.localMatrix);
 
     rodArm.localMatrix = myTranslate(0, 3.0, 0, rodArm.localMatrix);
@@ -217,11 +219,15 @@ function bindMyBuffers(buffers, deltaTime, x, y, a, grab, modelViewMatrix, model
     stringB.localMatrix = myTranslate(0, 2.0, 0, stringB.localMatrix);
 
     //SCALE Y COMPONENT OF STRING C TO MODIFY LENGTH
-    stringC.localMatrix = myScale(1.0, 0.01/*MODIFY HERE*/, 1.0, stringC.localMatrix);
+    let strLen = Math.sqrt(rod.bobberX*rod.bobberX + rod.bobberY*rod.bobberY + rod.bobberZ*rod.bobberZ);
+    let strRotX = Math.atan2(rod.bobberZ, rod.bobberY);
+    
+    stringC.localMatrix = myScale(1.0, strLen, 1.0, stringC.localMatrix);
+    stringC.localMatrix = myRotateX(strRotX, stringC.localMatrix);
     stringC.localMatrix = myTranslate(0, 8.0, 0, stringC.localMatrix);
 
     //Bobber
-    bobberHead.localMatrix = myScale(1.0, 100.0, 1.0, bobberHead.localMatrix);
+    bobberHead.localMatrix = myTranslate(rod.bobberX, 8.2+rod.bobberY, rod.bobberZ, bobberHead.localMatrix);
     bobberSphere.localMatrix = myTranslate(0, -0.2, 0, bobberSphere.localMatrix);
     bobberRing.localMatrix = myRotateX(Math.PI/2, bobberRing.localMatrix);
 
