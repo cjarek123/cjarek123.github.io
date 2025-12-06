@@ -145,7 +145,7 @@ function bindMyBuffers(buffers, deltaTime, x, y, a, grab, modelViewMatrix, model
         let fishBody = fishes[i].body;
         let fishTail = fishes[i].tail;
 
-        fishData.update();
+        fishData.update(rod);
         fishBody.localMatrix = new Float32Array([
             1, 0, 0, 0,
             0, 1, 0, 0,
