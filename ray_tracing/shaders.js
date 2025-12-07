@@ -9,7 +9,10 @@ const fsSource = `#version 300 es
 
     // time for animation
     uniform float u_time;
+
+    // resolution
     uniform vec2 u_resolution;
+
     // lighting
     uniform int u_maxBounces;
     uniform float u_ambientStrength;
@@ -17,7 +20,6 @@ const fsSource = `#version 300 es
     uniform int u_sph1Mat;
     uniform int u_sph2Mat;
     uniform int u_sph3Mat;
-    // entities
 
     // Struct for general primitive
     struct Primitive {
@@ -26,23 +28,34 @@ const fsSource = `#version 300 es
         vec3 color;
         float reflectivity;
         float refractiveIndex;
-        int shapeType;
         int material;
+        int shapeType;
         int pad0;//padding
+        float field1;
+        float field2;
+        float field3;
+        int pad1;//padding
     };
 
     layout(std140) uniform PrimitiveBlock {
-        Primitive primitives[32];
+        Primitive primitives[40];
         int primitiveCount;
     };
 
     // output pixel color
     out vec4 fragColor;
 
-     // Material types
+    // Material types
     const int MATERIAL_DIFFUSE = 0;
     const int MATERIAL_REFLECTIVE = 1;
     const int MATERIAL_REFRACTIVE = 2;
+
+    // Primitve types
+    const int PRIMITIVE_CONE = 0;
+    const int PRIMITIVE_CYLINDER = 1;
+    const int PRIMITIVE_ELLIPSOID = 2;
+    const int PRIMITIVE_RECTPRISM = 3;
+    const int PRIMITIVE_TORUS = 4;
 
     // Ray structure
     struct Ray {
@@ -88,6 +101,11 @@ const fsSource = `#version 300 es
         float refractiveIndex;
         bool frontFace;
     };
+
+    // Scene objects
+    Sphere lightSphere;
+    Sphere spheres[3];
+    Cube cubes[10];
 
     void initScene(float time) {
 
@@ -569,11 +587,11 @@ const fsSource = `#version 300 es
 
     void main() {
 
-        // // initialize the light and object geometries
+        // initialize the light and object geometries
         initScene(u_time);
 
         Primitive p0 = primitives[1];
-        vec3 c0 = p0.color; // this is (1.0,1.0,1.0)
+        vec3 c0 = p0.color;
         fragColor = vec4(c0, 1.0);
 
         // // instantiate camera view ray

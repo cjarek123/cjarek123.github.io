@@ -147,7 +147,7 @@
             gl.bindBuffer(gl.UNIFORM_BUFFER, ubo);
             // define sizes
             MAX_PRIMITIVES = 40;
-            PRIMITIVE_SIZE = 160; // std140 padded size of one Primitive
+            PRIMITIVE_SIZE = 176; // std140 padded size of one Primitive
             TOTAL_SIZE = MAX_PRIMITIVES * PRIMITIVE_SIZE + 16; // +16 bytes so primitiveCount sits on its own 16-byte aligned block
             // allocate GPU memory for the UBO
             gl.bufferData(gl.UNIFORM_BUFFER, TOTAL_SIZE, gl.DYNAMIC_DRAW);
@@ -196,7 +196,7 @@
 
         // entities
         const entities = new Entities(); // defines the entities/objects of the scene/game
-        entities.addEntity(new Fish(new Vec3(1.0, 1.0, 1.0))); // add the fish to entities
+        entities.addEntity(new Fish(new Vec3(1.0, 0.0, 1.0))); // add the fish to entities
 
         /**
          * Buffer the entities primitives into the fragment shader
@@ -212,15 +212,7 @@
                 const nodes = entity.nodes;
                 for (let k = 0; k < nodes.length; k++) {
                     const node = nodes[k];
-                    const primitive = node.primitive;
-                    const localMatrix = node.localMatrix;
-                    const worldMatrix = node.worldMatrix;
-                    const color = primitive.color;
-                    const reflectivity = primitive.reflectivity;
-                    const refractiveIndex = primitive.refractiveIndex;
-                    const material = primitive.material;
-                    const shapeTypeID = primitive.shapeTypeID;
-                    packPrimitive(cpuView, offset, localMatrix, worldMatrix, color, 0.5, 0.6, shapeTypeID, 1);
+                    packPrimitive(cpuView, offset, node);
                     offset += PRIMITIVE_SIZE;
                     NUM_PRIMITIVES++;
                 }
@@ -233,6 +225,9 @@
             gl.bindBuffer(gl.UNIFORM_BUFFER, null);
 
         };
+
+        // update the buffers related to the entities
+        bufferEntities(gl, program, entities)
 
         let startTime = Date.now();
         function render() {
@@ -257,8 +252,8 @@
             gl.uniform1i(sph2MatLocation, sph2Mat);
             gl.uniform1i(sph3MatLocation, sph3Mat);
 
-            // update the buffers related to the entities
-            bufferEntities(gl, program, entities)
+            // // update the buffers related to the entities
+            // bufferEntities(gl, program, entities)
 
             // render using the shaders
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);

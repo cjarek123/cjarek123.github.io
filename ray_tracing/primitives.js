@@ -82,39 +82,86 @@ window.Cone = Cone;
 window.Ellipsoid = Ellipsoid;
 window.Torus = Torus;
 
-function packPrimitive(view, offset, localMatrix, worldMatrix, color, reflectivity, refractiveIndex, shapeType, material) {
+/**
+ * Packs the data from a node/primitive into a struct for the UBO
+ */
+function packPrimitive(view, offset, node) {
+    
+    // extract the data
+    const primitive = node.primitive;
+    const localMatrix = node.localMatrix;
+    const worldMatrix = node.worldMatrix;
+    const color = primitive.color;
+    const reflectivity = primitive.reflectivity;
+    const refractiveIndex = primitive.refractiveIndex;
+    const material = primitive.material;
+    const shapeTypeID = primitive.shapeTypeID;
+
     let f32 = new Float32Array(view.buffer);
     let i32 = new Int32Array(view.buffer);
 
     let base = offset / 4; // float index
 
-    // 1. localMatrix (16 floats)
+    // localMatrix (16 floats)
     f32.set(localMatrix.m, base);
     base += 16;
 
-    // 2. worldMatrix (16 floats)
+    // worldMatrix (16 floats)
     f32.set(worldMatrix.m, base);
     base += 16;
 
-    // 3. color (vec3) + reflectivity (float)
+    // color (vec3) + reflectivity (float) (4 floats)
     f32[base++] = color.x;
     f32[base++] = color.y;
     f32[base++] = color.z;
     f32[base++] = reflectivity;
 
-    // 4. refractiveIndex
+    // refractiveIndex (float), material (int), shapeType(int), padding(int) (4 data)
     f32[base++] = refractiveIndex;
-
-    // 5. shapeType (int)
-    i32[base++] = shapeType;
-
-    // 6. material (int)
     i32[base++] = material;
-
-    // 7. padding
+    i32[base++] = shapeTypeID;
     i32[base++] = 0; // pad0
 
+    let field1, field2, field3;
+    switch(shapeTypeID) {
+        case 0: // cone
+            field1 = primitive.radius;
+            field2 = primitive.height;
+            field3 = 0;
+            break;
+        case 1: // cylinder
+            field1 = primitive.radius;
+            field2 = primitive.height;
+            field3 = 0;
+            break;
+        case 2: // ellipsoid
+            field1 = primitive.radius.x;
+            field2 = primitive.radius.y;
+            field3 = primitive.radius.z;
+            break;
+        case 3: // rectprism
+            field1 = primitive.dims.x;
+            field2 = primitive.dims.y;
+            field3 = primitive.dims.z;
+            break;
+        case 4: // torus
+            field1 = primitive.R;
+            field2 = primitive.r;
+            field3 = 0;
+            break;
+        default:
+            field1 = -1;
+            field2 = -1;
+            field3 = -1;
+    }
+
+    // shape math fields (4 data)
+    f32[base++] = field1;
+    f32[base++] = field2;
+    f32[base++] = field3;
+    i32[base++] = 0; // pad1
+
     // debug line
-    // console.log(f32.slice(offset, offset + 40)); 
+    // console.log(f32.slice((offset/4), (offset/4) + 44)); 
 }
 window.packPrimitive = packPrimitive;
