@@ -39,7 +39,7 @@ class Matrix4 {
             }
         }
 
-        return out;
+        return new Matrix4(out);
     }
 
     multiply(other) {

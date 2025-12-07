@@ -19,9 +19,27 @@ const fsSource = `#version 300 es
     uniform int u_sph3Mat;
     // entities
 
+    // Struct for general primitive
+    struct Primitive {
+        mat4 localMatrix;
+        mat4 worldMatrix;
+        vec3 color;
+        float reflectivity;
+        float refractiveIndex;
+        int shapeType;
+        int material;
+        int pad0;//padding
+    };
+
+    layout(std140) uniform PrimitiveBlock {
+        Primitive primitives[32];
+        int primitiveCount;
+    };
+
+    // output pixel color
     out vec4 fragColor;
 
-    // Material types
+     // Material types
     const int MATERIAL_DIFFUSE = 0;
     const int MATERIAL_REFLECTIVE = 1;
     const int MATERIAL_REFRACTIVE = 2;
@@ -71,13 +89,14 @@ const fsSource = `#version 300 es
         bool frontFace;
     };
 
-    // Scene objects
-    Sphere lightSphere;
-    Sphere spheres[3];
-    Cube cubes[10];
+    void initScene(float time) {
+
+        // initialize light possibly
+
+    }
 
     // Initialize scene objects
-    void initScene(float time) {
+    // void initScene(float time) {
 
         // // Light sphere
         // lightSphere = Sphere(
@@ -223,7 +242,7 @@ const fsSource = `#version 300 es
         //     0.00
         // );
 
-    }
+    // }
 
     bool intersectSphere(Ray ray, Sphere sphere, out float t) {
 
@@ -551,7 +570,11 @@ const fsSource = `#version 300 es
     void main() {
 
         // // initialize the light and object geometries
-        // initScene(u_time);
+        initScene(u_time);
+
+        Primitive p0 = primitives[1];
+        vec3 c0 = p0.color; // this is (1.0,1.0,1.0)
+        fragColor = vec4(c0, 1.0);
 
         // // instantiate camera view ray
         // vec3 origin = vec3(-14.5, 0.0, 5.5);
@@ -571,6 +594,7 @@ const fsSource = `#version 300 es
 
         // set the color
         // fragColor = vec4(color, 1.0);
-        fragColor = vec4(vec3(1.0,1.0,1.0), 1.0);
+        // vec3 c0 = p0.color;
+        // fragColor = vec4(c0, 1.0);
 
     }`
