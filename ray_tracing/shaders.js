@@ -69,26 +69,6 @@ const fsSource = `#version 300 es
         float offset;
     };
 
-    // Sphere structure
-    struct Sphere {
-        vec3 center;
-        float radius;
-        vec3 color;
-        int material;
-        float reflectivity;
-        float refractiveIndex;
-    };
-
-    // Cube structure
-    struct Cube {
-        vec3 center;
-        vec3 size;
-        vec3 color;
-        int material;
-        float reflectivity;
-        float refractiveIndex;
-    };
-
     // Hit record structure
     struct HitData {
         bool hit;
@@ -102,173 +82,26 @@ const fsSource = `#version 300 es
         bool frontFace;
     };
 
-    // Scene objects
-    Sphere lightSphere;
-    Sphere spheres[3];
-    Cube cubes[10];
-
-    void initScene(float time) {
-
-        // initialize light possibly
-
-    }
-
-    // Initialize scene objects
+    // // Initialize scene objects
     // void initScene(float time) {
-
-        // // Light sphere
-        // lightSphere = Sphere(
-        //     vec3(2.0, 0.0, 10.25),
-        //     0.1,
-        //     vec3(1.0, 1.0, 1.0) * (u_lightStrength / 3.0),
-        //     MATERIAL_DIFFUSE,
-        //     0.00,
-        //     0.00
-        // );
-
-        // // Cube 1 (floor)
-        // cubes[0] = Cube(
-        //     vec3(0.0, 0.0, 0.0),
-        //     vec3(30.0, 10.0, 1.0),
-        //     vec3(1.0, 0.0, 1.0),
-        //     MATERIAL_DIFFUSE,
-        //     0.00,
-        //     0.00
-        // );
-
-        // // Cube 2 (right wall)
-        // cubes[1] = Cube(
-        //     vec3(0.0, 5.5, 5.5),
-        //     vec3(30.0, 1.0, 10.0),
-        //     vec3(0.0, 1.0, 1.0),
-        //     MATERIAL_DIFFUSE,
-        //     0.00,
-        //     0.00
-        // );
-
-        // // Cube 3 (left wall)
-        // cubes[2] = Cube(
-        //     vec3(0.0, -5.5, 5.5),
-        //     vec3(30.0, 1.0, 10.0),
-        //     vec3(1.0, 0.6, 0.0),
-        //     MATERIAL_DIFFUSE,
-        //     0.00,
-        //     0.00
-        // );
-
-        // // Cube 4 (roof)
-        // cubes[3] = Cube(
-        //     vec3(0.0, 0.0, 11.0),
-        //     vec3(30.0, 10.0, 1.0),
-        //     vec3(0.7, 0.7, 0.7),
-        //     MATERIAL_DIFFUSE,
-        //     0.00,
-        //     0.00
-        // );
-
-        // // Cube 5 (back wall)
-        // cubes[4] = Cube(
-        //     vec3(15.5, 0.0, 5.5),
-        //     vec3(1.0, 10.0, 10.0),
-        //     vec3(1.0, 0.412, 0.706),
-        //     MATERIAL_DIFFUSE,
-        //     0.00,
-        //     0.00
-        // );
-
-        // // Cube 6 (wall behind camera)
-        // cubes[5] = Cube(
-        //     vec3(-15.5, 0.0, 5.5),
-        //     vec3(1.0, 10.0, 10.0),
-        //     vec3(1.0, 0.412, 0.706),
-        //     MATERIAL_DIFFUSE,
-        //     0.00,
-        //     0.00
-        // );
-
-        // // Cube 7 see thru wall 1
-        // cubes[6] = Cube(
-        //     vec3(2.0, -3.875, 3),
-        //     vec3(0.01, 2.25, 5.0),
-        //     vec3(0.2, 0.2, 1.0),
-        //     MATERIAL_REFRACTIVE,
-        //     0.10,
-        //     1.72
-        // );
-
-        // // Cube 8 see thru wall 2
-        // cubes[7] = Cube(
-        //     vec3(2.0, -1.625, 8.0),
-        //     vec3(0.01, 2.25, 5.0),
-        //     vec3(0.2, 1.0, 0.2),
-        //     MATERIAL_REFRACTIVE,
-        //     0.10,
-        //     1.72
-        // );
-
-        // // Cube 9 see thru wall 3
-        // cubes[8] = Cube(
-        //     vec3(2.0, -1.625, 3),
-        //     vec3(0.01, 2.25, 5.0),
-        //     vec3(0.65, 0.65, 0.65),
-        //     MATERIAL_REFRACTIVE,
-        //     0.10,
-        //     1.72
-        // );
-
-        // // Cube 10 see thru wall 4
-        // cubes[9] = Cube(
-        //     vec3(2.0, -3.875, 8.0),
-        //     vec3(0.01, 2.25, 5.0),
-        //     vec3(1.0, 0.2, 0.2),
-        //     MATERIAL_REFRACTIVE,
-        //     0.10,
-        //     1.72
-        // );
-
-        // float sphere1Height = (2.7 * sin(u_time + 1.2)) + 5.5;
-        // float sphere2Height = (2.7 * sin(u_time)) + 5.5;
-        // float sphere3Height = (2.7 * sin(u_time + 2.4)) + 5.5;
-
-        // // Sphere 1
-        // spheres[0] = Sphere(
-        //     vec3(10.0, 0.5, sphere1Height),
-        //     1.5,
-        //     vec3(1.0, 0.0, 0.0),
-        //     u_sph1Mat == 0 ? MATERIAL_REFLECTIVE : MATERIAL_DIFFUSE,
-        //     0.50,
-        //     0.00
-        // );
-
-        // // Sphere 2
-        // spheres[1] = Sphere(
-        //     vec3(5.0, -2.25, sphere2Height),
-        //     1.5,
-        //     vec3(0.0, 1.0, 0.0),
-        //     u_sph2Mat == 0 ? MATERIAL_REFLECTIVE : MATERIAL_DIFFUSE,
-        //     0.50,
-        //     0.00
-        // );
-
-        // // Sphere 3
-        // spheres[2] = Sphere(
-        //     vec3(0.0, 2.0, sphere3Height),
-        //     1.5,
-        //     vec3(0.0, 0.0, 1.0),
-        //     u_sph3Mat == 0 ? MATERIAL_REFLECTIVE : MATERIAL_DIFFUSE,
-        //     0.50,
-        //     0.00
-        // );
-
+    //     // Light sphere
+    //     lightSphere = Sphere(
+    //         vec3(2.0, 0.0, 10.25),
+    //         0.1,
+    //         vec3(1.0, 1.0, 1.0) * (u_lightStrength / 3.0),
+    //         MATERIAL_DIFFUSE,
+    //         0.00,
+    //         0.00
+    //     );
     // }
 
-    bool intersectSphere(Ray ray, Sphere sphere, out float t) {
+    bool intersectSphere(Ray ray, vec3 sphere_center, float sphere_radius, out float t) {
 
         // code from class lecture slides
-        vec3 oc = ray.origin - sphere.center;
+        vec3 oc = ray.origin - sphere_center;
         float a = dot(ray.direction, ray.direction);
         float b = 2.0 * dot(oc, ray.direction);
-        float c = dot(oc, oc) - sphere.radius * sphere.radius;
+        float c = dot(oc, oc) - sphere_radius * sphere_radius;
         float delta = b * b - 4.0 * a * c; 
 
         // my code
@@ -298,38 +131,38 @@ const fsSource = `#version 300 es
 
     }
 
-    bool intersectCube(Ray ray, Cube cube, out float t, out vec3 normal) {
+    bool intersectCube(Ray ray, vec3 cube_dims, vec3 cube_center, out float t, out vec3 normal) {
 
         // build the cube planes
-        vec3 halfSize = cube.size * 0.5;
-        vec3 cubeMin = cube.center - halfSize;
-        vec3 cubeMax = cube.center + halfSize;
+        vec3 halfSize = cube_dims * 0.5;
+        vec3 cubeMin = cube_center - halfSize;
+        vec3 cubeMax = cube_center + halfSize;
 
         Plane planes[6];
 
         // +X face
         planes[0].normal = vec3(1.0, 0.0, 0.0);
-        planes[0].offset = dot(planes[0].normal, vec3(cubeMax.x, cube.center.y, cube.center.z));
+        planes[0].offset = dot(planes[0].normal, vec3(cubeMax.x, cube_center.y, cube_center.z));
 
         // -X face
         planes[1].normal = vec3(-1.0, 0.0, 0.0);
-        planes[1].offset = dot(planes[1].normal, vec3(cubeMin.x, cube.center.y, cube.center.z));
+        planes[1].offset = dot(planes[1].normal, vec3(cubeMin.x, cube_center.y, cube_center.z));
 
         // +Y face
         planes[2].normal = vec3(0.0, 1.0, 0.0);
-        planes[2].offset = dot(planes[2].normal, vec3(cube.center.x, cubeMax.y, cube.center.z));
+        planes[2].offset = dot(planes[2].normal, vec3(cube_center.x, cubeMax.y, cube_center.z));
 
         // -Y face
         planes[3].normal = vec3(0.0, -1.0, 0.0);
-        planes[3].offset = dot(planes[3].normal, vec3(cube.center.x, cubeMin.y, cube.center.z));
+        planes[3].offset = dot(planes[3].normal, vec3(cube_center.x, cubeMin.y, cube_center.z));
 
         // +Z face
         planes[4].normal = vec3(0.0, 0.0, 1.0);
-        planes[4].offset = dot(planes[4].normal, vec3(cube.center.x, cube.center.y, cubeMax.z));
+        planes[4].offset = dot(planes[4].normal, vec3(cube_center.x, cube_center.y, cubeMax.z));
 
         // -Z face
         planes[5].normal = vec3(0.0, 0.0, -1.0);
-        planes[5].offset = dot(planes[5].normal, vec3(cube.center.x, cube.center.y, cubeMin.z));
+        planes[5].offset = dot(planes[5].normal, vec3(cube_center.x, cube_center.y, cubeMin.z));
 
         // loop over the six planes/slabs of the cube
         bool intersection = false;
@@ -384,79 +217,79 @@ const fsSource = `#version 300 es
         }
     }
 
-    // Trace objects in the scene for intersections
-    HitData traceScene(Ray ray, bool includeLightSphere) {
-        HitData closest;
-        closest.hit = false;
-        closest.t = 1e30;
+    // // Trace objects in the scene for intersections
+    // HitData traceScene(Ray ray, bool includeLightSphere) {
+    //     HitData closest;
+    //     closest.hit = false;
+    //     closest.t = 1e30;
 
-        // Light sphere intersection
-        if (includeLightSphere) {
-            float t; // distance
-            if (intersectSphere(ray, lightSphere, t)) {
-                if (t < closest.t) {
-                    // my code
-                    closest.hit = true;
-                    closest.t = t;
-                    closest.color = lightSphere.color;
-                    closest.material = lightSphere.material;
-                    closest.reflectivity = lightSphere.reflectivity;
-                    closest.refractiveIndex = lightSphere.refractiveIndex;
-                    vec3 point = ray.origin + (t * ray.direction);
-                    closest.point = point;
-                    closest.normal = normalize(point - lightSphere.center);
-                    bool front = dot(ray.direction, closest.normal) < 0.0;
-                    closest.frontFace = front;
-                    if (!front) closest.normal = - closest.normal;
-                }
-            }
-            return closest;
-        }
+    //     // Light sphere intersection
+    //     if (includeLightSphere) {
+    //         float t; // distance
+    //         if (intersectSphere(ray, lightSphere, t)) {
+    //             if (t < closest.t) {
+    //                 // my code
+    //                 closest.hit = true;
+    //                 closest.t = t;
+    //                 closest.color = lightSphere.color;
+    //                 closest.material = lightSphere.material;
+    //                 closest.reflectivity = lightSphere.reflectivity;
+    //                 closest.refractiveIndex = lightSphere.refractiveIndex;
+    //                 vec3 point = ray.origin + (t * ray.direction);
+    //                 closest.point = point;
+    //                 closest.normal = normalize(point - lightSphere.center);
+    //                 bool front = dot(ray.direction, closest.normal) < 0.0;
+    //                 closest.frontFace = front;
+    //                 if (!front) closest.normal = - closest.normal;
+    //             }
+    //         }
+    //         return closest;
+    //     }
 
-        // Cube intersection
-        for (int i = 0; i < 10; i++) {
-            float t;
-            vec3 normal;
-            if (intersectCube(ray, cubes[i], t, normal)) {
-                if (t < closest.t) {
-                    // my code
-                    closest.hit = true;
-                    closest.t = t;
-                    closest.color = cubes[i].color;
-                    closest.material = cubes[i].material;
-                    closest.reflectivity = cubes[i].reflectivity;
-                    closest.refractiveIndex = cubes[i].refractiveIndex;
-                    closest.point = ray.origin + (t * ray.direction);
-                    closest.normal = normal;
-                    closest.frontFace = dot(ray.direction, normal) < 0.0;
-                }
-            }
-        }
+    //     // Cube intersection
+    //     for (int i = 0; i < 10; i++) {
+    //         float t;
+    //         vec3 normal;
+    //         if (intersectCube(ray, cubes[i], t, normal)) {
+    //             if (t < closest.t) {
+    //                 // my code
+    //                 closest.hit = true;
+    //                 closest.t = t;
+    //                 closest.color = cubes[i].color;
+    //                 closest.material = cubes[i].material;
+    //                 closest.reflectivity = cubes[i].reflectivity;
+    //                 closest.refractiveIndex = cubes[i].refractiveIndex;
+    //                 closest.point = ray.origin + (t * ray.direction);
+    //                 closest.normal = normal;
+    //                 closest.frontFace = dot(ray.direction, normal) < 0.0;
+    //             }
+    //         }
+    //     }
 
-        // Sphere intersections
-        for (int i = 0; i < 3; i++) {
-            float t;
-            if (intersectSphere(ray, spheres[i], t)) {
-                if (t < closest.t) {
-                    // my code
-                    closest.hit = true;
-                    closest.t = t;
-                    closest.color = spheres[i].color;
-                    closest.material = spheres[i].material;
-                    closest.reflectivity = spheres[i].reflectivity;
-                    closest.refractiveIndex = spheres[i].refractiveIndex;
-                    vec3 point = ray.origin + (t * ray.direction);
-                    closest.point = point;
-                    closest.normal = normalize(point - spheres[i].center);
-                    bool front = dot(ray.direction, closest.normal) < 0.0;
-                    closest.frontFace = front;
-                    if (!front) closest.normal = - closest.normal;
-                }
-            }
-        }
+    //     // Sphere intersections
+    //     for (int i = 0; i < 3; i++) {
+    //         float t;
+    //         if (intersectSphere(ray, spheres[i], t)) {
+    //             if (t < closest.t) {
+    //                 // my code
+    //                 closest.hit = true;
+    //                 closest.t = t;
+    //                 closest.color = spheres[i].color;
+    //                 closest.material = spheres[i].material;
+    //                 closest.reflectivity = spheres[i].reflectivity;
+    //                 closest.refractiveIndex = spheres[i].refractiveIndex;
+    //                 vec3 point = ray.origin + (t * ray.direction);
+    //                 closest.point = point;
+    //                 closest.normal = normalize(point - spheres[i].center);
+    //                 bool front = dot(ray.direction, closest.normal) < 0.0;
+    //                 closest.frontFace = front;
+    //                 if (!front) closest.normal = - closest.normal;
+    //             }
+    //         }
+    //     }
 
-        return closest;
-    }
+    //     return closest;
+    // }
 
     // reflection
     vec3 reflection(vec3 I, vec3 N) {
@@ -475,61 +308,61 @@ const fsSource = `#version 300 es
         return F0 + (1.0 - F0) * pow(1.0 - cosine, 5.0);
     }
 
-    vec3 trace(Ray ray, int maxDepth) {
+    // vec3 trace(Ray ray, int maxDepth) {
 
-        // move out of this function later on
-        float shadowRatio = 0.001;
+    //     // move out of this function later on
+    //     float shadowRatio = 0.001;
 
-        // instantiate the color as [0,0,0]
-        vec3 color = vec3(0.0); 
+    //     // instantiate the color as [0,0,0]
+    //     vec3 color = vec3(0.0); 
 
-        // instantiate attenuation as [1,1,1]
-        vec3 attenuation = vec3(1.0);
+    //     // instantiate attenuation as [1,1,1]
+    //     vec3 attenuation = vec3(1.0);
 
-        for (int depth = 0; depth < 8; depth++) {
-            if (depth >= maxDepth) break;
+    //     for (int depth = 0; depth < 8; depth++) {
+    //         if (depth >= maxDepth) break;
 
-            HitData lightHit = traceScene(ray, true);
+    //         HitData lightHit = traceScene(ray, true);
 
-            // if light is hit directly set the color to the light and break
-            if (lightHit.hit) {
-                color = attenuation * lightHit.color;
-                break;
-            }
+    //         // if light is hit directly set the color to the light and break
+    //         if (lightHit.hit) {
+    //             color = attenuation * lightHit.color;
+    //             break;
+    //         }
 
-            HitData objectHit = traceScene(ray, false);
+    //         HitData objectHit = traceScene(ray, false);
 
-            // if we hit no object break set the color to the background and break
-            if (!objectHit.hit) {
-                color = vec3(0.0, 0.0, 0.0);
-                break;
-            }
+    //         // if we hit no object break set the color to the background and break
+    //         if (!objectHit.hit) {
+    //             color = vec3(0.0, 0.0, 0.0);
+    //             break;
+    //         }
 
-            // get light direction and distance
-            vec3 lightDir = normalize(lightSphere.center - objectHit.point);
-            float lightDist = length(lightSphere.center - objectHit.point);
+    //         // get light direction and distance
+    //         vec3 lightDir = normalize(lightSphere.center - objectHit.point);
+    //         float lightDist = length(lightSphere.center - objectHit.point);
 
-            // check shadow ray
-            Ray shadowRay = Ray(objectHit.point + objectHit.normal * 0.001, lightDir);
-            HitData shadowHit = traceScene(shadowRay, false);
+    //         // check shadow ray
+    //         Ray shadowRay = Ray(objectHit.point + objectHit.normal * 0.001, lightDir);
+    //         HitData shadowHit = traceScene(shadowRay, false);
 
-            // if the shadow hits add shadow effect
-            bool inShadow = false;
-            if (shadowHit.hit && shadowHit.t < lightDist) {
-                inShadow = true;
-            }
+    //         // if the shadow hits add shadow effect
+    //         bool inShadow = false;
+    //         if (shadowHit.hit && shadowHit.t < lightDist) {
+    //             inShadow = true;
+    //         }
 
-            // ambient light
-            vec3 ambientLight = objectHit.color * u_ambientStrength;
+    //         // ambient light
+    //         vec3 ambientLight = objectHit.color * u_ambientStrength;
 
-            // diffuse light
-            vec3 diffuseLight;
-            float diff = u_lightStrength * max(dot(normalize(objectHit.normal), normalize(lightDir)), 0.0);
-            if (inShadow) {
-                diffuseLight = objectHit.color * diff * shadowRatio;
-            } else {
-                diffuseLight = objectHit.color * diff;
-            }
+    //         // diffuse light
+    //         vec3 diffuseLight;
+    //         float diff = u_lightStrength * max(dot(normalize(objectHit.normal), normalize(lightDir)), 0.0);
+    //         if (inShadow) {
+    //             diffuseLight = objectHit.color * diff * shadowRatio;
+    //         } else {
+    //             diffuseLight = objectHit.color * diff;
+    //         }
 
         //     if (objectHit.material == MATERIAL_DIFFUSE) {
 
@@ -580,15 +413,12 @@ const fsSource = `#version 300 es
         //     }
 
         //     if (length(attenuation) < 0.01) break;
-        }
+        // }
 
-        return attenuation * color;
-    }
+    //     return attenuation * color;
+    // }
 
     void main() {
-
-        // initialize the light and object geometries
-        initScene(u_time);
 
         Primitive p0 = primitives[1];
         vec3 c0 = p0.color;
