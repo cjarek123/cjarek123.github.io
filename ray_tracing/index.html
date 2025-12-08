@@ -242,8 +242,8 @@
 
         };
 
-        // update the buffers related to the entities
-        bufferEntities(gl, program, entities)
+        // // for debugging
+        // bufferEntities(gl, program, entities)
 
         let startTime = Date.now();
         function render() {
@@ -276,8 +276,8 @@
             gl.uniform1i(sph2MatLocation, sph2Mat);
             gl.uniform1i(sph3MatLocation, sph3Mat);
 
-            // // update the buffers related to the entities
-            // bufferEntities(gl, program, entities)
+            // update the buffers related to the entities
+            bufferEntities(gl, program, entities)
 
             // render using the shaders
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
