@@ -73,34 +73,70 @@ class Entity {
 /**
  * Fish entity
  */
-class Fish extends Entity{
+class Fish extends Entity {
     constructor(color) {
         super();
         // primitives
-        let fishBody = new Ellipsoid(color, new Vec3(.5,.5,.5), MATERIALS.DIFFUSE, .0, .0);
-        let fishTail = new Cone(color, 1.0, 1.0, MATERIALS.DIFFUSE, .0, .0);
+        let fishBody = new Ellipsoid(color, new Vec3(1.0, 0.5, 0.3), MATERIALS.DIFFUSE, .0, .0);
+        let fishTail = new Cone(color, 0.25, 0.5, MATERIALS.DIFFUSE, .0, .0);
         // nodes
         this.fishBodyNode = new Node(fishBody);
         this.fishTailNode = new Node(fishTail);
         // attach tail to body
         this.fishTailNode.setParent(this.fishBodyNode);
-        // fish body
-        this.fishBodyNode.localMatrix = this.fishBodyNode.localMatrix.translate(-3.0, 0.0, 0.0);
-        this.fishBodyNode.localMatrix = this.fishBodyNode.localMatrix.scale(2.0, 1.0, 0.6);
-        // fish tail
-        this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.rotateZ(-Math.PI/2);
-        this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.scale(0.5, 1.0, 1.0/0.6);
-        this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.scale(1.0, 1.0, 0.05);
+        // translate fish tail
+        this.fishTailNode.localMatrix.translate(0, 1.0, 0);
         this.fishBodyNode.updateWorldMatrix();
         this.nodes = [
-            this.fishBodyNode, this.fishTailNode
+            this.fishBodyNode, 
+            this.fishTailNode
         ]
     }
 
     animate(deltaTime) {
-        // fish tail flapping
-        this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.rotateY(0.5*Math.sin(deltaTime*0.01));
-        this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.translate(-0.8, 0.0, 0.5*Math.sin(deltaTime*0.01));
-        this.fishBodyNode.updateWorldMatrix();
+        // // fish tail flapping
+        // this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.rotateY(0.5*Math.sin(deltaTime*0.01));
+        // this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.translate(-0.8, 0.0, 0.5*Math.sin(deltaTime*0.01));
+        // this.fishBodyNode.updateWorldMatrix();
+    }
+}
+
+class TestEntity extends Entity {
+    constructor(color) {
+        super();
+        // primitives
+        let cone = new Cone(color, 0.25, 0.5, MATERIALS.DIFFUSE, .0, .0);
+        let cylinder = new Cylinder(color, 0.25, 0.5, MATERIALS.DIFFUSE, .0, .0);
+        let ellipsoid = new Ellipsoid(color, new Vec3(1.0, 0.5, 0.3), MATERIALS.REFLECTIVE, 1.0, .0);
+        let rectprism = new RectPrism(color, new Vec3(0.5, 0.5, 0.5), MATERIALS.DIFFUSE, .0, .0);
+        let torus = new Torus(color, 0.4, 0.15, MATERIALS.DIFFUSE, .0, .0);
+        let rectprism2 = new RectPrism(color, new Vec3(10.0, 10.0, 0.5), MATERIALS.DIFFUSE, .0, .0);
+        // nodes
+        this.coneNode = new Node(cone);
+        this.cylinderNode = new Node(cylinder);
+        this.ellipsoidNode = new Node(ellipsoid);
+        this.rectprismNode = new Node(rectprism);
+        this.torusNode = new Node(torus);
+        this.rectprismNode2 = new Node(rectprism2);
+        // transformations
+        this.coneNode.localMatrix.translate(0.0, 1.6, 1.6);
+        this.cylinderNode.localMatrix.translate(0.0, -1.6, -0.5);
+        this.ellipsoidNode.localMatrix.translate(0.0, 0.0, -0.5);
+        this.rectprismNode.localMatrix.translate(0.0, 1.6, -0.5);
+        this.torusNode.localMatrix.translate(0.0, -1.6, 1.6);
+        this.rectprismNode2.localMatrix.translate(0.0, 0.0, -2.0);
+        // nodes
+        this.nodes = [
+            this.coneNode, 
+            this.cylinderNode,
+            this.ellipsoidNode, 
+            this.rectprismNode,
+            this.torusNode,
+            this.rectprismNode2
+        ]
+    }
+
+    animate(deltaTime) {
+        
     }
 }
