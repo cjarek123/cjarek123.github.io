@@ -202,8 +202,8 @@
         let cameraUp = new Vec3(0.0, 0.0, 1.0);
 
         // lighting variables
-        let lightCenter = new Vec3(0.0, 0.0, 1.0);
-        let maxBounces = 6;
+        let lightCenter = new Vec3(0.0, 0.0, 0.8);
+        let maxBounces = 5;
         let ambientStrength = 0.05;
         let lightStrength = 1.6;
         let sph1Mat = 0;
@@ -212,7 +212,8 @@
 
         // entities
         const entities = new Entities(); // defines the entities/objects of the scene/game
-        entities.addEntity(new Fish(new Vec3(1.0, 0.0, 1.0))); // add the fish to entities
+        // entities.addEntity(new Fish(new Vec3(1.0, 0.0, 1.0))); // add the fish to entities
+        entities.addEntity(new TestEntity(new Vec3(0.0, 0.0, 1.0)));
 
         /**
          * Buffer the entities primitives into the fragment shader
@@ -286,6 +287,7 @@
         }
 
         requestAnimationFrame(render);
+
     })();
 </script>
 

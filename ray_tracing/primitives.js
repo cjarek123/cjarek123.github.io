@@ -61,7 +61,7 @@ class Ellipsoid extends Primitive {
 }
 
 class RectPrism extends Primitive {
-    constructor(dims, color, material, reflectivity, refractiveIndex) {
+    constructor(color, dims, material, reflectivity, refractiveIndex) {
         super("rectprism", color, material, reflectivity, refractiveIndex);
         this.dims = dims;
     }

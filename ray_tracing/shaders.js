@@ -92,7 +92,7 @@ const fsSource = `#version 300 es
     Primitive lightSphere;
 
     // Initialize scene objects (light sphere)
-    void initScene() {
+    void initLightSphere() {
         // initialize the light sphere
         mat4 localMatrix = mat4(1.0);
         localMatrix[3][0] = u_lightCenter.x;
@@ -120,132 +120,57 @@ const fsSource = `#version 300 es
         mat4 M = worldMatrix * localMatrix;
         mat4 invM = inverse(M);
 
-        vec3 O = (invM * vec4(ray.origin,    1.0)).xyz;
+        vec3 O = (invM * vec4(ray.origin, 1.0)).xyz;
         vec3 D = normalize((invM * vec4(ray.direction, 0.0)).xyz);
 
         float h = cone_height;
         float r = cone_radius;
         float k = r / h;
+        float k2 = k * k;
 
-        // shift ray origin so apex = (0,0,+h/2)
-        vec3 OA = vec3(O.x, O.y, O.z - h * 0.5);
+        // shift ray origin so apex at (0,0,+h/2)
+        vec3 OA = vec3(O.x, O.y, O.z - h*0.5);
 
         float dx = D.x, dy = D.y, dz = D.z;
         float ox = OA.x, oy = OA.y, oz = OA.z;
 
-        float k2 = k * k;
+        float tHit = 1e30;
+        vec3 nLocalHit = vec3(0);
 
-        // quadratic coefficients for cone surface
+        // smooth surface check
         float a = dx*dx + dy*dy - k2 * dz*dz;
         float b = 2.0 * (ox*dx + oy*dy - k2 * oz*dz);
         float c = ox*ox + oy*oy - k2 * oz*oz;
 
-        float delta = b*b - 4.0*a*c;
-
-        if (delta < 0.0 || abs(a) < 1e-6) {
-            t = 1e30;
-            normal = vec3(0);
-            return false;
-        }
-
-        float sd = sqrt(delta);
-        float t0 = (-b - sd) / (2.0*a);
-        float t1 = (-b + sd) / (2.0*a);
-
-        t = (t0 > 0.001) ? t0 : t1;
-        if (t <= 0.001) {
-            t = 1e30;
-            normal = vec3(0);
-            return false;
-        }
-
-        vec3 hitLocal = O + D * t;
-
-        // check if point is between apex (+h/2) and base (-h/2) along Z
-        if (hitLocal.z >  h*0.5 || hitLocal.z < -h*0.5) {
-            t = 1e30;
-            normal = vec3(0);
-            return false;
-        }
-
-        // compute local-space normal from gradient
-        float zz = hitLocal.z - h*0.5;
-        vec3 nLocal = vec3(
-            hitLocal.x,
-            hitLocal.y,
-            -k2 * zz
-        );
-
-        vec3 nWorld = (transpose(invM) * vec4(nLocal, 0.0)).xyz;
-        normal = normalize(nWorld);
-
-        return true;
-
-    }
-
-
-    /**
-     * 1 - Cylinder Intersection Check
-     */
-    bool intersectCylinder(Ray ray, mat4 localMatrix, mat4 worldMatrix, float cylinder_radius, float cylinder_height, out float t, out vec3 normal) {
-        
-        mat4 M = worldMatrix * localMatrix;
-        mat4 invM = inverse(M);
-
-        vec3 o = (invM * vec4(ray.origin,    1.0)).xyz;
-        vec3 d = normalize((invM * vec4(ray.direction, 0.0)).xyz);
-
-        float halfH = cylinder_height * 0.5;
-        float tHit = 1e30;
-        vec3 nLocal = vec3(0);
-
-        // ---- side: x^2 + z^2 = cylinder_radius^2, y ∈ [-h/2, h/2]
-        float a = d.x*d.x + d.z*d.z;
-        float b = 2.0 * (o.x*d.x + o.z*d.z);
-        float c = o.x*o.x + o.z*o.z - cylinder_radius*cylinder_radius;
-
         if (abs(a) > 1e-6) {
-            float disc = b*b - 4.0*a*c;
-            if (disc >= 0.0) {
-                float s = sqrt(disc);
-                float t0 = (-b - s) / (2.0*a);
-                float t1 = (-b + s) / (2.0*a);
-
+            float delta = b*b - 4.0*a*c;
+            if (delta >= 0.0) {
+                float sd = sqrt(delta);
+                float t0 = (-b - sd) / (2.0*a);
+                float t1 = (-b + sd) / (2.0*a);
                 float ts[2] = float[2](t0, t1);
                 for (int i=0; i<2; i++) {
                     if (ts[i] > 0.001) {
-                        float yHit = o.y + d.y * ts[i];
-                        if (yHit >= -halfH && yHit <= halfH && ts[i] < tHit) {
+                        vec3 hit = O + D * ts[i];
+                        if (hit.z >= -h*0.5 && hit.z <= h*0.5 && ts[i] < tHit) {
                             tHit = ts[i];
-                            nLocal = normalize(vec3(o.x + d.x * ts[i],
-                                                    0.0,
-                                                    o.z + d.z * ts[i]));
+                            float zz = hit.z - h*0.5;
+                            nLocalHit = normalize(vec3(hit.x, hit.y, -k2 * zz));
                         }
                     }
                 }
             }
         }
 
-        // cap top: y = +halfH
-        if (abs(d.y) > 1e-6) {
-            float tcap = ( halfH - o.y) / d.y;
-            if (tcap > 0.001) {
-                vec3 p = o + d * tcap;
-                if (p.x*p.x + p.z*p.z <= cylinder_radius*cylinder_radius && tcap < tHit) {
-                    tHit = tcap;
-                    nLocal = vec3(0, 1, 0);
-                }
-            }
-        }
-
-        // cap bottom: y = -halfH
-        if (abs(d.y) > 1e-6) {
-            float tcap = (-halfH - o.y) / d.y;
-            if (tcap > 0.001) {
-                vec3 p = o + d * tcap;
-                if (p.x*p.x + p.z*p.z <= cylinder_radius*cylinder_radius && tcap < tHit) {
-                    tHit = tcap;
-                    nLocal = vec3(0, -1, 0);
+        // base check
+        float zBase = -h*0.5;
+        if (abs(D.z) > 1e-6) {
+            float tBase = (zBase - O.z) / D.z;
+            if (tBase > 0.001) {
+                vec3 pBase = O + D * tBase;
+                if (length(pBase.xy) <= r && tBase < tHit) {
+                    tHit = tBase;
+                    nLocalHit = vec3(0, 0, -1);
                 }
             }
         }
@@ -257,10 +182,84 @@ const fsSource = `#version 300 es
         }
 
         t = tHit;
-        vec3 nWorld = (transpose(invM) * vec4(nLocal, 0.0)).xyz;
-        normal = normalize(nWorld);
+        normal = normalize((transpose(invM) * vec4(nLocalHit, 0.0)).xyz);
         return true;
+    }
 
+
+    /**
+     * 1 - Cylinder Intersection Check
+     */
+    bool intersectCylinder(Ray ray, mat4 localMatrix, mat4 worldMatrix, float cylinder_radius, float cylinder_height, out float t, out vec3 normal) {
+
+        mat4 M = worldMatrix * localMatrix;
+        mat4 invM = inverse(M);
+
+        vec3 o = (invM * vec4(ray.origin, 1.0)).xyz;
+        vec3 d = normalize((invM * vec4(ray.direction, 0.0)).xyz);
+
+        float halfH = cylinder_height * 0.5;
+        float tHit = 1e30;
+        vec3 nLocalHit = vec3(0);
+
+        // cylinder sides: x^2 + y^2 = r^2, z in [-h/2, h/2] (Z-axis cylinder)
+        float a = d.x*d.x + d.y*d.y;
+        float b = 2.0 * (o.x*d.x + o.y*d.y);
+        float c = o.x*o.x + o.y*o.y - cylinder_radius*cylinder_radius;
+
+        if (abs(a) > 1e-6) {
+            float disc = b*b - 4.0*a*c;
+            if (disc >= 0.0) {
+                float sd = sqrt(disc);
+                float t0 = (-b - sd) / (2.0*a);
+                float t1 = (-b + sd) / (2.0*a);
+                float ts[2] = float[2](t0, t1);
+
+                for (int i=0; i<2; i++) {
+                    if (ts[i] > 0.001) {
+                        float zHit = o.z + d.z * ts[i];
+                        if (zHit >= -halfH && zHit <= halfH && ts[i] < tHit) {
+                            tHit = ts[i];
+                            nLocalHit = normalize(vec3(o.x + d.x*ts[i], o.y + d.y*ts[i], 0.0));
+                        }
+                    }
+                }
+            }
+        }
+
+        // top cap: z = +halfH 
+        if (abs(d.z) > 1e-6) {
+            float tTop = (halfH - o.z) / d.z;
+            if (tTop > 0.001) {
+                vec3 p = o + d * tTop;
+                if (length(p.xy) <= cylinder_radius && tTop < tHit) {
+                    tHit = tTop;
+                    nLocalHit = vec3(0, 0, 1);
+                }
+            }
+        }
+
+        // bottom cap: z = -halfH
+        if (abs(d.z) > 1e-6) {
+            float tBot = (-halfH - o.z) / d.z;
+            if (tBot > 0.001) {
+                vec3 p = o + d * tBot;
+                if (length(p.xy) <= cylinder_radius && tBot < tHit) {
+                    tHit = tBot;
+                    nLocalHit = vec3(0, 0, -1);
+                }
+            }
+        }
+
+        if (tHit == 1e30) {
+            t = 1e30;
+            normal = vec3(0);
+            return false;
+        }
+
+        t = tHit;
+        normal = normalize((transpose(invM) * vec4(nLocalHit, 0.0)).xyz);
+        return true;
     }
 
     /**
@@ -376,59 +375,43 @@ const fsSource = `#version 300 es
 
     }
 
-    /**
-     * 4 - Torus Intersection Check
-     */
-    bool intersectTorus(Ray ray, mat4 localMatrix, mat4 worldMatrix, float R, float r, out float t, out vec3 normal) {
+    float sdTorus(vec3 p, float R, float r) {
+    vec2 q = vec2(length(p.xy) - R, p.z);
+    return length(q) - r;
+}
 
-        mat4 M = worldMatrix * localMatrix;
-        mat4 invM = inverse(M);
+bool intersectTorus(Ray ray, mat4 localMatrix, mat4 worldMatrix, float R, float r, out float t, out vec3 normal) {
+    mat4 M = worldMatrix * localMatrix;
+    mat4 invM = inverse(M);
 
-        vec3 O = (invM * vec4(ray.origin, 1.0)).xyz;
-        vec3 D = normalize((invM * vec4(ray.direction, 0.0)).xyz);
+    vec3 O = (invM * vec4(ray.origin, 1.0)).xyz;
+    vec3 D = normalize((invM * vec4(ray.direction, 0.0)).xyz);
 
-        // iterative ray marching along the ray in local space
-        float tMax = 100.0;
-        float tStep = 0.01;
-        t = 0.0;
-        const int MAX_STEPS = 10000;
-        bool hit = false;
-        vec3 p;
-
-        for (int i=0; i<MAX_STEPS && t < tMax; i++) {
-            p = O + D * t;
-            float lenXY = length(p.xy);
-            float f = (lenXY - R)*(lenXY - R) + p.z*p.z - r*r;
-            if (abs(f) < 1e-4) {
-                hit = true;
-                break;
-            }
-            t += tStep;
+    t = 0.0;
+    const int MAX_STEPS = 100;
+    const float EPS = 1e-4;
+    const float tMax = 100.0;
+    for (int i=0; i<MAX_STEPS && t<tMax; i++) {
+        vec3 p = O + D*t;
+        float d = sdTorus(p, R, r);
+        if (d < EPS) {
+            // compute normal via gradient
+            vec3 grad;
+            float h = 1e-4;
+            grad.x = sdTorus(p + vec3(h,0,0), R, r) - d;
+            grad.y = sdTorus(p + vec3(0,h,0), R, r) - d;
+            grad.z = sdTorus(p + vec3(0,0,h), R, r) - d;
+            normal = normalize((transpose(invM) * vec4(grad,0.0)).xyz);
+            return true;
         }
-
-        if (!hit) {
-            t = 1e30;
-            normal = vec3(0);
-            return false;
-        }
-
-        // compute local-space normal (gradient of torus F)
-        float lenXY = length(p.xy);
-        vec3 nLocal;
-        if (lenXY > 1e-6) {
-            nLocal = vec3(
-                (p.x / lenXY) * (lenXY - R),
-                (p.y / lenXY) * (lenXY - R),
-                p.z
-            );
-        } else {
-            nLocal = vec3(0,0,1);
-        }
-        nLocal = normalize(nLocal);
-
-        normal = normalize((transpose(invM) * vec4(nLocal, 0.0)).xyz);
-        return true;
+        t += d; // sphere tracing step
     }
+
+    t = 1e30;
+    normal = vec3(0);
+    return false;
+}
+
 
     /**
      * Generic function for checking if a ray intersects a primitive
@@ -601,48 +584,47 @@ const fsSource = `#version 300 es
                 color += lighting;
                 break;
 
-            } 
-            // else if (objectHit.material == MATERIAL_REFRACTIVE) {
+            } else if (objectHit.material == MATERIAL_REFRACTIVE) {
 
-        //         // calculate schlick value
-        //         vec3 N = objectHit.normal;
-        //         float n_i = 1.0; // air
-        //         float n_t = objectHit.refractiveIndex;
+                // calculate schlick value
+                vec3 N = objectHit.normal;
+                float n_i = 1.0; // air
+                float n_t = objectHit.refractiveIndex;
 
-        //         if (dot(ray.direction, N) > 0.0) {
-        //             N = -N;
-        //             n_i = 1.52;
-        //             n_t = 1.0;
-        //         }
+                if (dot(ray.direction, N) > 0.0) {
+                    N = -N;
+                    n_i = 1.52;
+                    n_t = 1.0;
+                }
 
-        //         float cosine = clamp(dot(-ray.direction, N), -1.0, 1.0);
-        //         float schlick_value = schlick(cosine, n_i, n_t);
+                float cosine = clamp(dot(-ray.direction, N), -1.0, 1.0);
+                float schlick_value = schlick(cosine, n_i, n_t);
 
-        //         // check if refraction is possible
-        //         bool TIR_check1 = (n_i > n_t);
-        //         float incident_angle = acos(cosine);
-        //         float sine = sin(incident_angle);
-        //         bool TIR_check2 = sine > (n_t / n_i);
-        //         bool total_internel_reflection = TIR_check1 && TIR_check2;
+                // check if refraction is possible
+                bool TIR_check1 = (n_i > n_t);
+                float incident_angle = acos(cosine);
+                float sine = sin(incident_angle);
+                bool TIR_check2 = sine > (n_t / n_i);
+                bool total_internel_reflection = TIR_check1 && TIR_check2;
 
-        //         vec3 direction;
-        //         if (total_internel_reflection || schlick_value > 0.5) {
-        //             // reflect
-        //             direction = reflection(ray.direction, N);
-        //         } else {
-        //             // refract
-        //             direction = refraction(ray.direction, N, (n_i / n_t));
-        //         }
+                vec3 direction;
+                if (total_internel_reflection || schlick_value > 0.5) {
+                    // reflect
+                    direction = reflection(ray.direction, N);
+                } else {
+                    // refract
+                    direction = refraction(ray.direction, N, (n_i / n_t));
+                }
 
-        //         attenuation *= objectHit.color;
-        //         ray = Ray(objectHit.point + direction * 0.001, direction);
+                attenuation *= objectHit.color;
+                ray = Ray(objectHit.point + direction * 0.001, direction);
 
-        //     } else {
+            } else {
 
-        //         attenuation *= objectHit.reflectivity;
-        //         ray = Ray(objectHit.point + objectHit.normal * 0.001, reflect(ray.direction, objectHit.normal));
+                attenuation *= objectHit.reflectivity;
+                ray = Ray(objectHit.point + objectHit.normal * 0.001, reflect(ray.direction, objectHit.normal));
 
-        //     }
+            }
 
             if (length(attenuation) < 0.01) break;
         }
@@ -653,7 +635,7 @@ const fsSource = `#version 300 es
     void main() {
 
         // initialize the lightSphere
-        initScene();
+        initLightSphere();
 
         // instantiate camera view ray
         vec3 origin = u_cameraOrigin;

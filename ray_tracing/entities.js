@@ -73,7 +73,7 @@ class Entity {
 /**
  * Fish entity
  */
-class Fish extends Entity{
+class Fish extends Entity {
     constructor(color) {
         super();
         // primitives
@@ -86,9 +86,7 @@ class Fish extends Entity{
         this.fishTailNode.setParent(this.fishBodyNode);
         // translate fish tail
         this.fishTailNode.localMatrix.translate(0, 1.0, 0);
-        console.log(this.fishTailNode.localMatrix)
         this.fishBodyNode.updateWorldMatrix();
-        console.log(this.fishTailNode.localMatrix)
         this.nodes = [
             this.fishBodyNode, 
             this.fishTailNode
@@ -100,5 +98,45 @@ class Fish extends Entity{
         // this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.rotateY(0.5*Math.sin(deltaTime*0.01));
         // this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.translate(-0.8, 0.0, 0.5*Math.sin(deltaTime*0.01));
         // this.fishBodyNode.updateWorldMatrix();
+    }
+}
+
+class TestEntity extends Entity {
+    constructor(color) {
+        super();
+        // primitives
+        let cone = new Cone(color, 0.25, 0.5, MATERIALS.DIFFUSE, .0, .0);
+        let cylinder = new Cylinder(color, 0.25, 0.5, MATERIALS.DIFFUSE, .0, .0);
+        let ellipsoid = new Ellipsoid(color, new Vec3(1.0, 0.5, 0.3), MATERIALS.REFLECTIVE, 1.0, .0);
+        let rectprism = new RectPrism(color, new Vec3(0.5, 0.5, 0.5), MATERIALS.DIFFUSE, .0, .0);
+        let torus = new Torus(color, 0.4, 0.15, MATERIALS.DIFFUSE, .0, .0);
+        let rectprism2 = new RectPrism(color, new Vec3(10.0, 10.0, 0.5), MATERIALS.DIFFUSE, .0, .0);
+        // nodes
+        this.coneNode = new Node(cone);
+        this.cylinderNode = new Node(cylinder);
+        this.ellipsoidNode = new Node(ellipsoid);
+        this.rectprismNode = new Node(rectprism);
+        this.torusNode = new Node(torus);
+        this.rectprismNode2 = new Node(rectprism2);
+        // transformations
+        this.coneNode.localMatrix.translate(0.0, 1.6, 1.6);
+        this.cylinderNode.localMatrix.translate(0.0, -1.6, -0.5);
+        this.ellipsoidNode.localMatrix.translate(0.0, 0.0, -0.5);
+        this.rectprismNode.localMatrix.translate(0.0, 1.6, -0.5);
+        this.torusNode.localMatrix.translate(0.0, -1.6, 1.6);
+        this.rectprismNode2.localMatrix.translate(0.0, 0.0, -2.0);
+        // nodes
+        this.nodes = [
+            this.coneNode, 
+            this.cylinderNode,
+            this.ellipsoidNode, 
+            this.rectprismNode,
+            this.torusNode,
+            this.rectprismNode2
+        ]
+    }
+
+    animate(deltaTime) {
+        
     }
 }
