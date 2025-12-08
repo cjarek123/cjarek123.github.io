@@ -80,7 +80,9 @@
         const vertexShaderSource = vsSource;
         const fragmentShaderSource = fsSource;
 
-        let program, positionLocation, resolutionLocation, timeLocation, maxBouncesLocation, ambientStrengthLocation, lightStrengthLocation, sph1MatLocation, sph2MatLocation, sph3MatLocation;
+        let program, positionLocation, resolutionLocation, timeLocation;
+        let cameraOriginLocation, cameraForwardLocation, cameraUpLocation;
+        let lightCenterLocation, maxBouncesLocation, ambientStrengthLocation, lightStrengthLocation, sph1MatLocation, sph2MatLocation, sph3MatLocation;
         let vao, positionBuffer;
 
         function createShader(gl, type, source) {
@@ -168,6 +170,14 @@
                 positionLocation = gl.getAttribLocation(program, 'position');
                 resolutionLocation = gl.getUniformLocation(program, 'u_resolution');
                 timeLocation = gl.getUniformLocation(program, 'u_time');
+
+                // camera
+                cameraOriginLocation = gl.getUniformLocation(program, 'u_cameraOrigin');
+                cameraForwardLocation = gl.getUniformLocation(program, 'u_cameraForward');
+                cameraUpLocation = gl.getUniformLocation(program, 'u_cameraUp');
+
+                // lighting
+                lightCenterLocation = gl.getUniformLocation(program, 'u_lightCenter');
                 maxBouncesLocation = gl.getUniformLocation(program, 'u_maxBounces');
                 ambientStrengthLocation = gl.getUniformLocation(program, 'u_ambientStrength');
                 lightStrengthLocation = gl.getUniformLocation(program, 'u_lightStrength');
@@ -186,7 +196,13 @@
 
         initShaderProgram();
 
+        // camera variables
+        let cameraOrigin = new Vec3(-7.0, 0.0, 0.0);
+        let cameraForward = new Vec3(1.0, 0.0, 0.0);
+        let cameraUp = new Vec3(0.0, 0.0, 1.0);
+
         // lighting variables
+        let lightCenter = new Vec3(0.0, 0.0, 1.0);
         let maxBounces = 6;
         let ambientStrength = 0.05;
         let lightStrength = 1.6;
@@ -245,6 +261,14 @@
 
             gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
             gl.uniform1f(timeLocation, deltaTime);
+
+            // camera
+            gl.uniform3f(cameraOriginLocation, cameraOrigin.x, cameraOrigin.y, cameraOrigin.z);
+            gl.uniform3f(cameraForwardLocation, cameraForward.x, cameraForward.y, cameraForward.z);
+            gl.uniform3f(cameraUpLocation, cameraUp.x, cameraUp.y, cameraUp.z); 
+
+            // lighting
+            gl.uniform3f(lightCenterLocation, lightCenter.x, lightCenter.y, lightCenter.z);
             gl.uniform1i(maxBouncesLocation, maxBounces);
             gl.uniform1f(ambientStrengthLocation, ambientStrength);
             gl.uniform1f(lightStrengthLocation, lightStrength);

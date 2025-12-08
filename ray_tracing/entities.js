@@ -77,30 +77,28 @@ class Fish extends Entity{
     constructor(color) {
         super();
         // primitives
-        let fishBody = new Ellipsoid(color, new Vec3(.5,.5,.5), MATERIALS.DIFFUSE, .0, .0);
-        let fishTail = new Cone(color, 1.0, 1.0, MATERIALS.DIFFUSE, .0, .0);
+        let fishBody = new Ellipsoid(color, new Vec3(1.0, 0.5, 0.3), MATERIALS.DIFFUSE, .0, .0);
+        let fishTail = new Cone(color, 0.25, 0.5, MATERIALS.DIFFUSE, .0, .0);
         // nodes
         this.fishBodyNode = new Node(fishBody);
         this.fishTailNode = new Node(fishTail);
         // attach tail to body
         this.fishTailNode.setParent(this.fishBodyNode);
-        // fish body
-        this.fishBodyNode.localMatrix = this.fishBodyNode.localMatrix.translate(-3.0, 0.0, 0.0);
-        this.fishBodyNode.localMatrix = this.fishBodyNode.localMatrix.scale(2.0, 1.0, 0.6);
-        // fish tail
-        this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.rotateZ(-Math.PI/2);
-        this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.scale(0.5, 1.0, 1.0/0.6);
-        this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.scale(1.0, 1.0, 0.05);
+        // translate fish tail
+        this.fishTailNode.localMatrix.translate(0, 1.0, 0);
+        console.log(this.fishTailNode.localMatrix)
         this.fishBodyNode.updateWorldMatrix();
+        console.log(this.fishTailNode.localMatrix)
         this.nodes = [
-            this.fishBodyNode, this.fishTailNode
+            this.fishBodyNode, 
+            this.fishTailNode
         ]
     }
 
     animate(deltaTime) {
-        // fish tail flapping
-        this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.rotateY(0.5*Math.sin(deltaTime*0.01));
-        this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.translate(-0.8, 0.0, 0.5*Math.sin(deltaTime*0.01));
-        this.fishBodyNode.updateWorldMatrix();
+        // // fish tail flapping
+        // this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.rotateY(0.5*Math.sin(deltaTime*0.01));
+        // this.fishTailNode.localMatrix = this.fishTailNode.localMatrix.translate(-0.8, 0.0, 0.5*Math.sin(deltaTime*0.01));
+        // this.fishBodyNode.updateWorldMatrix();
     }
 }

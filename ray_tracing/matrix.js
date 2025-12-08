@@ -42,7 +42,27 @@ class Matrix4 {
         return new Matrix4(out);
     }
 
-    multiply(other) {
+    preMultiply(other) {
+        const a = this.m;    // this matrix
+        const b = other.m;   // the matrix to apply first
+        const out = new Float32Array(16);
+
+        for (let col = 0; col < 4; col++) {
+            for (let row = 0; row < 4; row++) {
+                let sum = 0;
+                for (let k = 0; k < 4; k++) {
+                    // swap order: b * a instead of a * b
+                    sum += b[row + k*4] * a[k + col*4];
+                }
+                out[row + col*4] = sum;
+            }
+        }
+
+        this.m = out;
+        return this;
+    }
+
+    postMultiply(other) {
         const a = this.m;
         const b = other.m;
         const out = new Float32Array(16);
@@ -68,7 +88,7 @@ class Matrix4 {
         t.m[12] = x;
         t.m[13] = y;
         t.m[14] = z;
-        return this.multiply(t);
+        return this.preMultiply(t);
     }
 
     // scale
@@ -78,7 +98,7 @@ class Matrix4 {
         s.m[0] = x;
         s.m[5] = y;
         s.m[10] = z;
-        return this.multiply(s);
+        return this.preMultiply(s);
     }
 
     // Rotation: angle in radians
@@ -91,7 +111,7 @@ class Matrix4 {
         r.m[6] = s;
         r.m[9] = -s;
         r.m[10] = c;
-        return this.multiply(r);
+        return this.preMultiply(r);
     }
 
     rotateY(rad) {
@@ -102,7 +122,7 @@ class Matrix4 {
         r.m[2] = -s;
         r.m[8] = s;
         r.m[10] = c;
-        return this.multiply(r);
+        return this.preMultiply(r);
     }
 
     rotateZ(rad) {
@@ -113,7 +133,7 @@ class Matrix4 {
         r.m[1] = s;
         r.m[4] = -s;
         r.m[5] = c;
-        return this.multiply(r);
+        return this.preMultiply(r);
     }
 
     // transformation apply
