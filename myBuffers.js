@@ -158,7 +158,18 @@ function bindMyBuffers(buffers, deltaTime, x, y, a, grab, modelViewMatrix, model
             0, 0, 1, 0,
             0, 0, 0, 1
         ]);
-                
+        
+        if(fishData.state == fish.HOOKED){
+            rod.fishHooked = true;
+            rod.hookedFishWeight = (fishData.size+0.5)*(fishData.size+0.5)*(fishData.size+0.5)*10.0;
+            fishBody.setParent(bobberSphere);
+            fishData.x = 0.0;
+            fishData.y = 0.0;
+            fishData.z = 0.0;
+        }else{
+            fishBody.setParent(null);
+        }
+
         //Fish Body
         fishBody.localMatrix = myScale(2.0, 1.0, 0.6, fishBody.localMatrix);
         fishBody.localMatrix = myScale(fishData.size, fishData.size, fishData.size, fishBody.localMatrix);
@@ -265,8 +276,10 @@ function bindMyBuffers(buffers, deltaTime, x, y, a, grab, modelViewMatrix, model
 
     //Handle Base/Arm/Grip
     handleBase.localMatrix = myRotateZ(Math.PI/2, handleBase.localMatrix);
-    //USE handleBase.localMatrix = myRotateX() TO ANIMATE THE HANDLE SPINNING
-    //handleBase.localMatrix = myRotateX(-deltaTime*0.01/Math.PI, handleBase.localMatrix);
+    if(rod.state == fishingRod.REELING){
+        //USE handleBase.localMatrix = myRotateX() TO ANIMATE THE HANDLE SPINNING
+        handleBase.localMatrix = myRotateX(-deltaTime*0.01/Math.PI, handleBase.localMatrix);
+    }
     handleBase.localMatrix = myTranslate(-0.5, 0.5, 0, handleBase.localMatrix);
 
     handleArm.localMatrix = myRotateZ(Math.PI/2, handleArm.localMatrix);

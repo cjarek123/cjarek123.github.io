@@ -18,25 +18,37 @@ class fish{
     switch(this.state){
       case fish.SWIMMING:
         this.x += this.size*0.1;
+
         if(this.x > 18.0){
           this.size = (Math.random()+0.5)*(Math.random()+0.5);
           this.x = -18.0;
         }
-
         
         if(Math.sqrt((rod.bobberX-this.x)*(rod.bobberX-this.x) +
                      (rod.bobberY+13.0-this.y)*(rod.bobberY+13.0-this.y) +
                      (rod.bobberZ-this.z)*(rod.bobberZ-this.z)) < 1.0){
-          if(rod.state == fishingRod.FISHING){
+          if(rod.state == fishingRod.FISHING && rod.fishHooked == false){
             this.state = fish.HOOKED;
-            rod.state = fishingRod.REELING;
+            //rod.state = fishingRod.REELING;
           }
         }
 
       break;
       case fish.HOOKED:
+        if(rod.state == fishingRod.IDLE){
+          this.state = fish.CAUGHT;
+          rod.fishHooked = false;
+          rod.hookedWeight = 0.0;
+        }
+
       break;
       case fish.CAUGHT:
+        //record size and reset fish
+        this.size = (Math.random()+0.75)*(Math.random()+0.75); //0.25 to 1.0
+        this.x = -18.0;
+        this.y = 0;
+        this.z = -(Math.floor(Math.random()*10)*2)-10;
+        this.state = fish.SWIMMING;
       break;
       case fish.ESCAPED:
       break;

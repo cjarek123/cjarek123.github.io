@@ -4,6 +4,10 @@ class fishingRod {
   static RELEASING = 2;
   static FISHING = 3;
   static REELING = 4;
+  static REELSPEED = 0.2;
+
+  fishHooked = false;
+  hookedFishWeight = 0.0;
 
   constructor(){
     this.charge = 0.0;
@@ -58,6 +62,11 @@ class fishingRod {
       break;
       case fishingRod.REELING:
         console.log("REELING");
+        this.bobberZ += fishingRod.REELSPEED;
+        if(this.bobberZ >= -1.5){
+          this.bobberY = 0.0;
+          this.state = fishingRod.IDLE;
+        }
       break;
     }
   }

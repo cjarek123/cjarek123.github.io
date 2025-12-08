@@ -27,7 +27,6 @@
 
 <body>
   <h2>Interactive Controls & Geometric Primitives</h2>
-  <h3>Hold WASD to move the robotic arm.</h3>
   <div style="display: flex; gap: 10px; align-items: flex-start;">
     <div style="display: flex; flex-direction: column; gap: 10px;">
       <div>
@@ -40,8 +39,33 @@
       </div>
     </div>
     <div style="display: flex; flex-direction: column;">
+      <h2>Hold SPACE to begin!</h2>
       <div><canvas id="glcanvas" width="550" height="550"></canvas></div>
       <div><meter id="charge-meter" value ="0" min="0" max="1" low="0.3" high="0.7" optimum="0.8" style="width: 550px; height: 50px;"></meter></div>
+    </div>
+    
+    <table>
+      <tr style="vertical-align:top;">
+        <tr><td colspan="3"><h2>Scoreboard</h2></td>
+      </tr>
+      <tr>
+        <td>Number of Fish Caught:</td>
+        <td id="num-caught" width="30px">0</td>
+      </tr>
+      <tr>
+        <td>Total Weight: </td>
+        <td id="total-weight" width="30px">0.0</td>
+      </tr>
+      <tr>
+        <td>Largest Catch:</td>
+        <td id="largest-catch" width="30px">0.0</td>
+      </tr>
+      <tr>
+        <td>Smallest Catch:</td>
+        <td id="smallest-catch" width="30px">0.0</td>
+      </tr>
+    </table>
+    </div>
     </div>
   </div>
   <br>
@@ -453,21 +477,29 @@ void main() {
     let chargeInterval;
 
     document.addEventListener('keydown', e=> {
-      if(e.code === "Space" && !(rod.state == fishingRod.CHARGING)){
-        rod.state = fishingRod.CHARGING;
+      if(e.code === "Space"){
+        if(rod.state == fishingRod.IDLE){
+          rod.state = fishingRod.CHARGING;
 
-        chargeInterval = setInterval(() => {
-          meter.value = Math.min(meter.value + 0.02, meter.max);
-          rod.charge = meter.value;
-        }, 16);
+          chargeInterval = setInterval(() => {
+            meter.value = Math.min(meter.value + 0.02, meter.max);
+            rod.charge = meter.value;
+          }, 16);
+        }else if(rod.state == fishingRod.FISHING){
+          rod.state = fishingRod.REELING;
+        }
       }
     });
     document.addEventListener('keyup', e=> {
-      if(e.code === "Space" && rod.state == fishingRod.CHARGING){
-        rod.state = fishingRod.RELEASING;
-        clearInterval(chargeInterval);
-        //launch the bobber here.
-        meter.value = 0;
+      if(e.code === "Space"){
+        if(rod.state == fishingRod.CHARGING){
+          rod.state = fishingRod.RELEASING;
+          clearInterval(chargeInterval);
+          //launch the bobber here.
+          meter.value = 0;
+        }else if(rod.state == fishingRod.REELING){
+          rod.state = fishingRod.FISHING;
+        }
       }
     })
 
@@ -478,9 +510,33 @@ void main() {
     ]);
 
     let startTime = Date.now();
+    const numCaughtTxt = document.getElementById("num-caught");
+    const totalWeightTxt = document.getElementById("total-weight");
+    const largestCatchTxt = document.getElementById("largest-catch");
+    const smallestCatchTxt = document.getElementById("smallest-catch");
+    let numCaught = 0;
+    let totalWeight = 0.0;
+    let largestCatch = 0.0;
+    let smallestCatch = 0.0;
 
     function render() {
       rod.update();
+      if(rod.state == fishingRod.IDLE && rod.hookedFishWeight != 0.0){
+        numCaught++;
+        totalWeight += rod.hookedFishWeight;
+        if(rod.hookedFishWeight > largestCatch){
+          largestCatch = rod.hookedFishWeight;
+        }
+        if(smallestCatch == 0.0 || rod.hookedFishWeight < smallestCatch){
+          smallestCatch = rod.hookedFishWeight;
+        }
+        numCaughtTxt.textContent = numCaught;
+        totalWeightTxt.textContent = totalWeight.toFixed(2);
+        largestCatchTxt.textContent = largestCatch.toFixed(2);
+        smallestCatchTxt.textContent = smallestCatch.toFixed(2);
+        console.log("You caught a fish weighing " + rod.hookedFishWeight.toFixed(2) + " units!");
+        rod.hookedFishWeight = 0.0;
+      }
 
       gl.enable(gl.DEPTH_TEST);
       gl.clearColor(0, 0, 0, 1);
