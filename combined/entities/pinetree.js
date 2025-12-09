@@ -5,7 +5,7 @@ class PineTree extends Entity {
         super();
 
         // primitives
-        let trunk = new Cylinder(trunkColor, scale_factor*6.0, scale_factor*8.0, MATERIALS.DIFFUSE, 0.0, 0.0)
+        let trunk = new Cylinder(trunkColor, scale_factor*6.0, scale_factor*10.0, MATERIALS.DIFFUSE, 0.0, 0.0)
         let leaves1 = new Cone(leavesColor, scale_factor*12.0, scale_factor*13.0, MATERIALS.DIFFUSE, 0.0, 0.0)
         let leaves2 = new Cone(leavesColor, scale_factor*12.0, scale_factor*13.0, MATERIALS.DIFFUSE, 0.0, 0.0)
         let leaves3 = new Cone(leavesColor, scale_factor*10.0, scale_factor*11.0, MATERIALS.DIFFUSE, 0.0, 0.0)

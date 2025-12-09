@@ -78,6 +78,10 @@
 
 <script>
 
+    /**
+     * Camera functionality 
+     */
+
     function updateCameraBasisKeepUp(forward) {
         const F = forward.clone().normalize();
         const worldUp = new Vec3(0, 0, 1);
@@ -140,7 +144,44 @@
 
 </script>
 
+
 <script>
+    /**
+     * Day/Night cycle
+     */
+
+    // lighting variables
+    const maxBounces = 6;
+    const orbitHeight = 200.0;
+    const dayInSeconds = 60.0;
+    let lightCenter = new Vec3(0.0, 0.0, 200.0);
+    let lightStrength = 3.5;
+    let ambientStrength = 0.05;
+
+    function updateLightLocation(deltaTime) {
+        let rem = (deltaTime % dayInSeconds) / dayInSeconds
+        if (rem < 0.5) {
+            lightStrength = 3.5;
+            ambientStrength = 0.5;
+            let cos = Math.cos(rem * 2 * Math.PI);
+            let sin = Math.sin(rem * 2 * Math.PI);
+            lightCenter = new Vec3(orbitHeight * cos, 0.0, orbitHeight * sin);
+        } else {
+            lightStrength = 0.1;
+            ambientStrength = 0.1;
+            let cos = Math.cos((rem - 0.5) * 2 * Math.PI);
+            let sin = Math.sin((rem - 0.5) * 2 * Math.PI);
+            lightCenter = new Vec3(orbitHeight * cos, 0.0, orbitHeight * sin);
+        }
+    }
+
+</script>
+
+
+<script>
+    /**
+     * Entity instantiation
+     */
 
     function hsv2rgb(h, s, v) {
         let c = v * s;
@@ -208,6 +249,9 @@
         entities.addEntities(pineTrees); // 12 prim
         return entities; // 18
     }
+    
+    // entities
+    const entities = initEntities();
 
 </script>
 
@@ -339,17 +383,6 @@
 
         initShaderProgram();
 
-        // lighting variables
-        let lightCenter = new Vec3(0.0, 0.0, 200.0);
-        let maxBounces = 6;
-        // let ambientStrength = 0.02;
-        // let lightStrength = 3.0;
-        let ambientStrength = 0.02;
-        let lightStrength = 0.5;
-
-        // entities
-        const fishEntities = initEntities();
-
         /**
          * Buffer the entities primitives into the fragment shader
          */
@@ -393,8 +426,11 @@
                 lastFrameTime = now;
                 const deltaTime = (Date.now() - startTime) / 1000.0;
 
+                // update day night cycle
+                updateLightLocation(deltaTime);
+
                 // update the animations of the entities
-                fishEntities.animate(deltaTime);
+                entities.animate(deltaTime);
 
                 gl.viewport(0, 0, canvas.width, canvas.height);
                 gl.clearColor(0, 0, 0, 1);
@@ -419,7 +455,7 @@
                 gl.uniform1f(lightStrengthLocation, lightStrength);
 
                 // update the buffers related to the entities
-                bufferEntities(gl, program, fishEntities)
+                bufferEntities(gl, program, entities)
 
                 // render using the shaders
                 gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
