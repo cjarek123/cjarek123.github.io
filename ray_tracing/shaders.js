@@ -116,75 +116,101 @@ const fsSource = `#version 300 es
      * 0 - Cone Intersection Check
      */
     bool intersectCone(Ray ray, mat4 localMatrix, mat4 worldMatrix, float cone_radius, float cone_height, out float t, out vec3 normal) {
-
+        
+        // object-to-world and its inverse
         mat4 M = worldMatrix * localMatrix;
         mat4 invM = inverse(M);
 
+        // transform ray into local space
         vec3 O = (invM * vec4(ray.origin, 1.0)).xyz;
-        vec3 D = normalize((invM * vec4(ray.direction, 0.0)).xyz);
+        vec3 D_un = (invM * vec4(ray.direction, 0.0)).xyz;
 
+        float dirScale = length(D_un);
+        if (dirScale < 1e-8) { t = 1e30; normal = vec3(0); return false; }
+        vec3 D = D_un / dirScale;
+
+        // define cone so apex at z = 0, base center at z = -h, radius r at base
         float h = cone_height;
         float r = cone_radius;
         float k = r / h;
         float k2 = k * k;
 
-        // shift ray origin so apex at (0,0,+h/2)
-        vec3 OA = vec3(O.x, O.y, O.z - h*0.5);
+        // move origin so apex is at z=0: O_apex = O - (0,0,+h/2) if your original cone
+        // definition had apex at +h/2 and base at -h/2. Here we make apex=0 and base=-h.
+        // If your prior local-space used apex at +h/2 & base at -h/2, this shift maps to apex=0.
+        vec3 O_apex = O - vec3(0.0, 0.0, h * 0.5);
 
-        float dx = D.x, dy = D.y, dz = D.z;
-        float ox = OA.x, oy = OA.y, oz = OA.z;
+        // For quadratic, use coordinates relative to apex:
+        float ox = O_apex.x;
+        float oy = O_apex.y;
+        float oz = O_apex.z;
 
-        float tHit = 1e30;
-        vec3 nLocalHit = vec3(0);
+        float dx = D.x;
+        float dy = D.y;
+        float dz = D.z;
 
-        // smooth surface check
+        // Quadratic for the infinite cone (apex at origin, axis = -Z):
+        // x^2 + y^2 - (k^2) * z^2 = 0
         float a = dx*dx + dy*dy - k2 * dz*dz;
         float b = 2.0 * (ox*dx + oy*dy - k2 * oz*dz);
         float c = ox*ox + oy*oy - k2 * oz*oz;
 
+        float tLocal = 1e30;
+        vec3 nLocalHit = vec3(0.0);
+
+        // body intersection (finite cone: z in [-h, 0])
         if (abs(a) > 1e-6) {
             float delta = b*b - 4.0*a*c;
             if (delta >= 0.0) {
                 float sd = sqrt(delta);
-                float t0 = (-b - sd) / (2.0*a);
-                float t1 = (-b + sd) / (2.0*a);
+                float t0 = (-b - sd) / (2.0 * a);
+                float t1 = (-b + sd) / (2.0 * a);
                 float ts[2] = float[2](t0, t1);
-                for (int i=0; i<2; i++) {
-                    if (ts[i] > 0.001) {
-                        vec3 hit = O + D * ts[i];
-                        if (hit.z >= -h*0.5 && hit.z <= h*0.5 && ts[i] < tHit) {
-                            tHit = ts[i];
-                            float zz = hit.z - h*0.5;
-                            nLocalHit = normalize(vec3(hit.x, hit.y, -k2 * zz));
+                for (int i = 0; i < 2; i++) {
+                    float ti = ts[i];
+                    if (ti > 0.001) {
+                        // hit in apex-relative frame
+                        vec3 hit = O_apex + D * ti;
+                        // finite cone extent check: base at z = -h, apex at z = 0
+                        if (hit.z <= 0.0 && hit.z >= -h && ti < tLocal) {
+                            tLocal = ti;
+                            // gradient of F = (x, y, -k^2 * z) for x^2+y^2 - k^2 z^2 = 0
+                            nLocalHit = normalize(vec3(hit.x, hit.y, -k2 * hit.z));
                         }
                     }
                 }
             }
         }
 
-        // base check
-        float zBase = -h*0.5;
+        // base disk intersection: plane z = -h (in apex-relative coords)
         if (abs(D.z) > 1e-6) {
-            float tBase = (zBase - O.z) / D.z;
+            // plane z = -h
+            float tBase = (-h - O_apex.z) / D.z;
             if (tBase > 0.001) {
-                vec3 pBase = O + D * tBase;
-                if (length(pBase.xy) <= r && tBase < tHit) {
-                    tHit = tBase;
-                    nLocalHit = vec3(0, 0, -1);
+                vec3 pBase = O_apex + D * tBase;
+                if (length(pBase.xy) <= r && tBase < tLocal) {
+                    tLocal = tBase;
+                    nLocalHit = vec3(0.0, 0.0, -1.0); // outward normal for base
                 }
             }
         }
 
-        if (tHit == 1e30) {
+        if (tLocal == 1e30) {
             t = 1e30;
-            normal = vec3(0);
+            normal = vec3(0.0);
             return false;
         }
 
-        t = tHit;
-        normal = normalize((transpose(invM) * vec4(nLocalHit, 0.0)).xyz);
+        // convert local t back to world t
+        t = tLocal * dirScale;
+
+        // transform normal to world space (use inverse-transpose, w=0)
+        vec3 nWorld = normalize((transpose(invM) * vec4(nLocalHit, 0.0)).xyz);
+        normal = nWorld;
+
         return true;
     }
+
 
 
     /**
@@ -260,6 +286,7 @@ const fsSource = `#version 300 es
         t = tHit;
         normal = normalize((transpose(invM) * vec4(nLocalHit, 0.0)).xyz);
         return true;
+        
     }
 
     /**
@@ -364,54 +391,56 @@ const fsSource = `#version 300 es
         float eps = 1e-4;
 
         if (abs(hit.x - maxB.x) < eps) nLocal = vec3( 1,0,0);
-        else if (abs(hit.x - minB.x) < eps) nLocal = vec3(-1,0,0);
-        else if (abs(hit.y - maxB.y) < eps) nLocal = vec3(0, 1,0);
-        else if (abs(hit.y - minB.y) < eps) nLocal = vec3(0,-1,0);
-        else if (abs(hit.z - maxB.z) < eps) nLocal = vec3(0,0, 1);
-        else if (abs(hit.z - minB.z) < eps) nLocal = vec3(0,0,-1);
+            else if (abs(hit.x - minB.x) < eps) nLocal = vec3(-1,0,0);
+            else if (abs(hit.y - maxB.y) < eps) nLocal = vec3(0, 1,0);
+            else if (abs(hit.y - minB.y) < eps) nLocal = vec3(0,-1,0);
+            else if (abs(hit.z - maxB.z) < eps) nLocal = vec3(0,0, 1);
+            else if (abs(hit.z - minB.z) < eps) nLocal = vec3(0,0,-1);
 
-        normal = normalize((transpose(invM) * vec4(nLocal, 0.0)).xyz);
-        return true;
-
-    }
-
-    float sdTorus(vec3 p, float R, float r) {
-    vec2 q = vec2(length(p.xy) - R, p.z);
-    return length(q) - r;
-}
-
-bool intersectTorus(Ray ray, mat4 localMatrix, mat4 worldMatrix, float R, float r, out float t, out vec3 normal) {
-    mat4 M = worldMatrix * localMatrix;
-    mat4 invM = inverse(M);
-
-    vec3 O = (invM * vec4(ray.origin, 1.0)).xyz;
-    vec3 D = normalize((invM * vec4(ray.direction, 0.0)).xyz);
-
-    t = 0.0;
-    const int MAX_STEPS = 100;
-    const float EPS = 1e-4;
-    const float tMax = 100.0;
-    for (int i=0; i<MAX_STEPS && t<tMax; i++) {
-        vec3 p = O + D*t;
-        float d = sdTorus(p, R, r);
-        if (d < EPS) {
-            // compute normal via gradient
-            vec3 grad;
-            float h = 1e-4;
-            grad.x = sdTorus(p + vec3(h,0,0), R, r) - d;
-            grad.y = sdTorus(p + vec3(0,h,0), R, r) - d;
-            grad.z = sdTorus(p + vec3(0,0,h), R, r) - d;
-            normal = normalize((transpose(invM) * vec4(grad,0.0)).xyz);
+            normal = normalize((transpose(invM) * vec4(nLocal, 0.0)).xyz);
             return true;
+
         }
-        t += d; // sphere tracing step
+
+        float sdTorus(vec3 p, float R, float r) {
+        vec2 q = vec2(length(p.xy) - R, p.z);
+        return length(q) - r;
     }
 
-    t = 1e30;
-    normal = vec3(0);
-    return false;
-}
+    /**
+     * 4 - Torus Intersection Check
+     */
+    bool intersectTorus(Ray ray, mat4 localMatrix, mat4 worldMatrix, float R, float r, out float t, out vec3 normal) {
+        mat4 M = worldMatrix * localMatrix;
+        mat4 invM = inverse(M);
 
+        vec3 O = (invM * vec4(ray.origin, 1.0)).xyz;
+        vec3 D = normalize((invM * vec4(ray.direction, 0.0)).xyz);
+
+        t = 0.0;
+        const int MAX_STEPS = 150;
+        const float EPS = 1e-4;
+        const float tMax = 100.0;
+        for (int i=0; i<MAX_STEPS && t<tMax; i++) {
+            vec3 p = O + D*t;
+            float d = sdTorus(p, R, r);
+            if (d < EPS) {
+                // compute normal via gradient
+                vec3 grad;
+                float h = 1e-4;
+                grad.x = sdTorus(p + vec3(h,0,0), R, r) - d;
+                grad.y = sdTorus(p + vec3(0,h,0), R, r) - d;
+                grad.z = sdTorus(p + vec3(0,0,h), R, r) - d;
+                normal = normalize((transpose(invM) * vec4(grad,0.0)).xyz);
+                return true;
+            }
+            t += d; // sphere tracing step
+        }
+
+        t = 1e30;
+        normal = vec3(0);
+        return false;
+    }
 
     /**
      * Generic function for checking if a ray intersects a primitive

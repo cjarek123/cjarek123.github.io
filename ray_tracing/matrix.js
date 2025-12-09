@@ -108,8 +108,8 @@ class Matrix4 {
         const s = Math.sin(rad);
         const r = new Matrix4();
         r.m[5] = c;
-        r.m[6] = s;
-        r.m[9] = -s;
+        r.m[6] = -s;
+        r.m[9] = s;
         r.m[10] = c;
         return this.preMultiply(r);
     }
@@ -119,8 +119,8 @@ class Matrix4 {
         const s = Math.sin(rad);
         const r = new Matrix4();
         r.m[0] = c;
-        r.m[2] = -s;
-        r.m[8] = s;
+        r.m[2] = s;
+        r.m[8] = -s;
         r.m[10] = c;
         return this.preMultiply(r);
     }
