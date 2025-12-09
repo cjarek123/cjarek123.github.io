@@ -146,38 +146,6 @@
     let cameraUp = cameraBasis.up;
     let cameraRight = cameraBasis.right;
 
-    document.addEventListener('keydown', e => {
-        const radians = Math.PI / 64;
-        switch (e.key) {
-            case 'ArrowLeft': {
-                const mat4 = new Matrix4().rotateZ(radians);
-                newCameraForward = mat4.transformVec3(cameraForward);
-                cameraBasis = updateCameraBasisKeepUp(newCameraForward, standardCameraForward, standardCameraUp, standardCameraRight)
-                let temp = cameraBasis.forward;
-                if (Math.abs(temp.x) >= 0.55) {
-                    break;
-                }
-                cameraForward = cameraBasis.forward;
-                cameraUp = cameraBasis.up;
-                cameraRight = cameraBasis.right;
-                break;
-            }
-            case 'ArrowRight': {
-                const mat4 = new Matrix4().rotateZ(-radians);
-                newCameraForward = mat4.transformVec3(cameraForward);
-                cameraBasis = updateCameraBasisKeepUp(newCameraForward, standardCameraForward, standardCameraUp, standardCameraRight);
-                let temp = cameraBasis.forward;
-                if (Math.abs(temp.x) >= 0.55) {
-                    break;
-                }
-                cameraForward = cameraBasis.forward;
-                cameraUp = cameraBasis.up;
-                cameraRight = cameraBasis.right;
-                break;
-            }
-        }
-    });
-
 </script>
 
 
@@ -308,22 +276,6 @@
     const meter = document.getElementById("charge-meter");
     let chargeInterval;
 
-    document.addEventListener('keydown', e=> {
-        if(e.code === "Space"){
-            if(fishingRod.state == FishingRod.IDLE){
-
-                fishingRod.state = FishingRod.CHARGING;
-                chargeInterval = setInterval(() => {
-                    meter.value = Math.min(meter.value + 0.02, meter.max);
-                    fishingRod.charge = meter.value;
-                }, 16);
-
-            }else if(fishingRod.state == FishingRod.FISHING){
-                fishingRod.state = FishingRod.REELING;
-            }
-        }
-    });
-
     document.addEventListener('keyup', e=> {
         if(e.code === "Space"){
             if(fishingRod.state == FishingRod.CHARGING){
@@ -347,6 +299,51 @@
     let totalWeight = 0.0;
     let largestCatch = 0.0;
     let smallestCatch = 0.0;
+
+    document.addEventListener('keydown', e => {
+        const radians = Math.PI / 64;
+        switch (e.code) {
+            case 'ArrowLeft': {
+                const mat4 = new Matrix4().rotateZ(radians);
+                newCameraForward = mat4.transformVec3(cameraForward);
+                cameraBasis = updateCameraBasisKeepUp(newCameraForward, standardCameraForward, standardCameraUp, standardCameraRight)
+                let temp = cameraBasis.forward;
+                if (Math.abs(temp.x) >= 0.55) {
+                    break;
+                }
+                cameraForward = cameraBasis.forward;
+                cameraUp = cameraBasis.up;
+                cameraRight = cameraBasis.right;
+                break;
+            }
+            case 'ArrowRight': {
+                const mat4 = new Matrix4().rotateZ(-radians);
+                newCameraForward = mat4.transformVec3(cameraForward);
+                cameraBasis = updateCameraBasisKeepUp(newCameraForward, standardCameraForward, standardCameraUp, standardCameraRight);
+                let temp = cameraBasis.forward;
+                if (Math.abs(temp.x) >= 0.55) {
+                    break;
+                }
+                cameraForward = cameraBasis.forward;
+                cameraUp = cameraBasis.up;
+                cameraRight = cameraBasis.right;
+                break;
+            }
+            case 'Space': {
+                if(fishingRod.state == FishingRod.IDLE){
+
+                    fishingRod.state = FishingRod.CHARGING;
+                    chargeInterval = setInterval(() => {
+                        meter.value = Math.min(meter.value + 0.02, meter.max);
+                        fishingRod.charge = meter.value;
+                    }, 16);
+
+                }else if(fishingRod.state == FishingRod.FISHING){
+                    fishingRod.state = FishingRod.REELING;
+                }
+            }
+        }
+    });
 
 </script>
 
