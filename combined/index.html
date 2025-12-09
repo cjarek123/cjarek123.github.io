@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>CS 412/512 Computer Graphics Final Project</title>
+    <style>
+        body {
+        background: #111;
+        color: #ccc;
+        font-family: monospace;
+        }
+
+        textarea {
+        background: #222;
+        color: #0f0;
+        font: 14px monospace;
+        width: 400px;
+        height: 250px;
+        }
+
+        canvas {
+        border: 1px solid #444;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Interactive Controls & Geometric Primitives</h2>
+  <div style="display: flex; gap: 10px; align-items: flex-start;">
+    <div style="display: flex; flex-direction: column;">
+      <h2>Hold SPACE to begin!</h2>
+      <div><canvas id="glCanvas" width="800" height="550"></canvas></div>
+      <div><meter id="charge-meter" value ="0" min="0" max="1" low="0.3" high="0.7" optimum="0.8" style="width: 800px; height: 50px;"></meter></div>
+    </div>
+    
+    <table>
+      <tr style="vertical-align:top;">
+        <tr><td colspan="3"><h2>Scoreboard</h2></td>
+      </tr>
+      <tr>
+        <td>Number of Fish Caught:</td>
+        <td id="num-caught" width="30px">0</td>
+      </tr>
+      <tr>
+        <td>Total Weight: </td>
+        <td id="total-weight" width="30px">0.0</td>
+      </tr>
+      <tr>
+        <td>Largest Catch:</td>
+        <td id="largest-catch" width="30px">0.0</td>
+      </tr>
+      <tr>
+        <td>Smallest Catch:</td>
+        <td id="smallest-catch" width="30px">0.0</td>
+      </tr>
+    </table>
+    </div>
+    </div>
+  </div>
+
+<!-- <div class="container">
+
+    <div class="canvas-container">
+        <h2>CS 412/512 Computer Graphics Final Project</h2>
+        <h2>Hold SPACE to begin!</h2>
+        <canvas id="glCanvas" width="800" height="600"></canvas>
+        <div><meter id="charge-meter" value ="0" min="0" max="1" low="0.3" high="0.7" optimum="0.8" style="width: 550px; height: 50px;"></meter></div>
+    </div>
+
+    <div style="display: flex; flex-direction: column;">
+        <table>
+            <tr style="vertical-align:top;">
+                <tr><td colspan="3"><h2>Scoreboard</h2></td>
+            </tr>
+            <tr>
+                <td>Number of Fish Caught:</td>
+                <td id="num-caught" width="30px">0</td>
+            </tr>
+            <tr>
+                <td>Total Weight: </td>
+                <td id="total-weight" width="30px">0.0</td>
+            </tr>
+            <tr>
+                <td>Largest Catch:</td>
+                <td id="largest-catch" width="30px">0.0</td>
+            </tr>
+            <tr>
+                <td>Smallest Catch:</td>
+                <td id="smallest-catch" width="30px">0.0</td>
+            </tr>
+        </table>
+    </div>
+
+</div> -->
+
+<script src="materials.js"></script>
+<script src="vector.js"></script>
+<script src="matrix.js"></script>
+<script src="primitives.js"></script>
+<script src="node.js"></script>
+<script src="entities.js"></script>
+<script src="shaders.js"></script>
+
+
+<script src="entities/fish.js"></script>
+<script src="entities/fishingrod.js"></script>
+<script src="entities/dock.js"></script>
+<script src="entities/river.js"></script>
+<script src="entities/grass.js"></script>
+<script src="entities/pinetree.js"></script>
+
+
+<script>
+
+    /**
+     * Camera functionality 
+     */
+
+    function updateCameraBasisKeepUp(forward) {
+        const F = forward.clone().normalize();
+        const worldUp = new Vec3(0, 0, 1);
+
+        let R = F.cross(worldUp);
+        if (R.length() < 1e-6) {
+            R = new Vec3(1, 0, 0);
+        } else {
+            R = R.normalize();
+        }
+
+        const U = R.cross(F).normalize();
+
+        return { forward: F, right: R, up: U };
+    }
+
+    // camera variables
+    // const cameraOrigin = new Vec3(0.0, -45.0, 50.0); // adjust this
+    // const standardCameraForward = new Vec3(0.0, 1.0, 0.0);
+    // const standardCameraUp = new Vec3(0.0, 0.0, 1.0);
+    // const standardCameraRight = new Vec3(-1.0,0.0,0.0);
+    // let newCameraForward = new Vec3(0.0, 100.0, -45.0); // adjust this
+    const cameraOrigin = new Vec3(30.0, 60.0, 50.0); // adjust this
+    const standardCameraForward = new Vec3(0.0, 1.0, 0.0);
+    const standardCameraUp = new Vec3(0.0, 0.0, 1.0);
+    const standardCameraRight = new Vec3(-1.0,0.0,0.0);
+    let newCameraForward = new Vec3(-100.0, -100.0, -45.0); // adjust this
+    let cameraBasis = updateCameraBasisKeepUp(newCameraForward)
+    let cameraForward = cameraBasis.forward;
+    let cameraUp = cameraBasis.up;
+    let cameraRight = cameraBasis.right;
+
+</script>
+
+
+<script>
+    /**
+     * Day/Night cycle
+     */
+
+    // lighting variables
+    const maxBounces = 6;
+    const orbitHeight = 200.0;
+    const dayInSeconds = 60.0;
+    let lightCenter = new Vec3(0.0, 0.0, 200.0);
+    let lightStrength = 3.5;
+    let ambientStrength = 0.5;
+
+    function updateLightLocation(deltaTime) {
+        let rem = (deltaTime % dayInSeconds) / dayInSeconds
+        if (rem < 0.5) {
+            lightStrength = 3.5;
+            ambientStrength = 0.5;
+            let cos = Math.cos(rem * 2 * Math.PI);
+            let sin = Math.sin(rem * 2 * Math.PI);
+            lightCenter = new Vec3(orbitHeight * cos, 0.0, orbitHeight * sin);
+        } else {
+            lightStrength = 0.1;
+            ambientStrength = 0.1;
+            let cos = Math.cos((rem - 0.5) * 2 * Math.PI);
+            let sin = Math.sin((rem - 0.5) * 2 * Math.PI);
+            lightCenter = new Vec3(orbitHeight * cos, 0.0, orbitHeight * sin);
+        }
+    }
+
+</script>
+
+
+<script>
+    /**
+     * Entity instantiation
+     */
+
+    function hsv2rgb(h, s, v) {
+        let c = v * s;
+        let x = c * (1 - Math.abs((h / 60) % 2 - 1));
+        let m = v - c;
+        let r=0, g=0, b=0;
+
+        if (h < 60)      [r,g,b] = [c,x,0];
+        else if (h < 120) [r,g,b] = [x,c,0];
+        else if (h < 180) [r,g,b] = [0,c,x];
+        else if (h < 240) [r,g,b] = [0,x,c];
+        else if (h < 300) [r,g,b] = [x,0,c];
+        else              [r,g,b] = [c,0,x];
+
+        return new Vec3(r+m, g+m, b+m);
+    }
+
+    function initFish() {
+        const hue = Math.random() * 360; // random hue
+        const color = hsv2rgb(hue, 1.0, 1.0);
+        const center = new Vec3(Math.random() * 80 - 40, -(Math.floor(Math.random()*10)*2) + 60, 5.0);
+        const scale_factor = Math.sqrt(Math.random()) * (5 - 1.0) + 1.0;
+        const fish = new Fish(color, center, scale_factor);
+        return fish
+    }
+
+    let fishingRod, fishes;
+
+    /**
+     * Initialize the entities of the game
+     */
+    function initEntities() {
+        // fishes in scene
+        fishes = new Entities(); // defines the entities/objects of the scene/game
+        for (let i = 0; i < 6; i++) {
+            let fish = initFish();
+            fishes.addEntity(fish);
+        }
+        // fishing rod
+        const rods = new Entities();
+        fishingRod = new FishingRod(new Vec3(1.0, 1.0, 1.0), new Vec3(0.0, 10.0, 25.0), 2.0);
+        rods.addEntity(fishingRod);
+        // dock
+        const docks = new Entities();
+        let dock = new Dock(new Vec3(0.396, 0.263, 0.129), new Vec3(0.0, 9.0, 3.0), 1.0);
+        docks.addEntity(dock);
+        // river
+        const rivers = new Entities();
+        let river = new River(new Vec3(0.1, 0.75, 0.95), new Vec3(1.0, 1.0, 1.0), new Vec3(0.0, 70.0, 0.0), 1.0);
+        rivers.addEntity(river);
+        // grass
+        const grassBlocks = new Entities();
+        let grassBlock1 = new Grass(new Vec3(0.0, 0.6, 0.05), new Vec3(0.0, -50.0, 2.0), 1.0);
+        let grassBlock2 = new Grass(new Vec3(0.0, 0.6, 0.05), new Vec3(0.0, 190.0, 2.0), 1.0);
+        grassBlocks.addEntity(grassBlock1);
+        grassBlocks.addEntity(grassBlock2);
+        // pine trees
+        const pineTrees = new Entities();
+        let pineTree1 = new PineTree(new Vec3(0.18, 0.12, 0.05), new Vec3(0.0, 0.10, 0.0), new Vec3(50.0, 160 + Math.random() * 30, 7.0), 1.0);
+        let pineTree2 = new PineTree(new Vec3(0.18, 0.12, 0.05), new Vec3(0.0, 0.10, 0.0), new Vec3(-50.0, 160 + Math.random() * 30, 7.0), 1.0);
+        pineTrees.addEntity(pineTree1);
+        pineTrees.addEntity(pineTree2);
+        // merge entities
+        const entities = new Entities();
+        // entities.addEntities(fishes);
+        entities.addEntities(docks); // 2 prim
+        entities.addEntities(rivers); // 2 prim
+        entities.addEntities(grassBlocks); // 2 prim
+        entities.addEntities(pineTrees); // 12 prim
+        entities.addEntities(rods); // 18 prim
+        return entities; // 18 + 18 = 36
+    }
+    
+    // entities
+    const entities = initEntities();
+
+</script>
+
+
+<script>
+    /**
+     * game logic
+     */ 
+
+    ////////////////////////////////////////////////////////////////////////////////
+    //                               CHARGE METER
+    ////////////////////////////////////////////////////////////////////////////////
+    const meter = document.getElementById("charge-meter");
+    let chargeInterval;
+
+    document.addEventListener('keyup', e=> {
+        if(e.code === "Space"){
+            if(fishingRod.state == FishingRod.CHARGING){
+    
+                fishingRod.state = FishingRod.RELEASING;
+                clearInterval(chargeInterval);
+                //launch the bobber here.
+                meter.value = 0;
+
+            }else if(fishingRod.state == FishingRod.REELING){
+                fishingRod.state = FishingRod.FISHING;
+            }
+        }
+    })
+
+    const numCaughtTxt = document.getElementById("num-caught");
+    const totalWeightTxt = document.getElementById("total-weight");
+    const largestCatchTxt = document.getElementById("largest-catch");
+    const smallestCatchTxt = document.getElementById("smallest-catch");
+    let numCaught = 0;
+    let totalWeight = 0.0;
+    let largestCatch = 0.0;
+    let smallestCatch = 0.0;
+
+    document.addEventListener('keydown', e => {
+        const radians = Math.PI / 64;
+        switch (e.code) {
+            case 'ArrowLeft': {
+                const mat4 = new Matrix4().rotateZ(radians);
+                newCameraForward = mat4.transformVec3(cameraForward);
+                cameraBasis = updateCameraBasisKeepUp(newCameraForward, standardCameraForward, standardCameraUp, standardCameraRight)
+                let temp = cameraBasis.forward;
+                if (Math.abs(temp.x) >= 0.55) {
+                    break;
+                }
+                cameraForward = cameraBasis.forward;
+                cameraUp = cameraBasis.up;
+                cameraRight = cameraBasis.right;
+                break;
+            }
+            case 'ArrowRight': {
+                const mat4 = new Matrix4().rotateZ(-radians);
+                newCameraForward = mat4.transformVec3(cameraForward);
+                cameraBasis = updateCameraBasisKeepUp(newCameraForward, standardCameraForward, standardCameraUp, standardCameraRight);
+                let temp = cameraBasis.forward;
+                if (Math.abs(temp.x) >= 0.55) {
+                    break;
+                }
+                cameraForward = cameraBasis.forward;
+                cameraUp = cameraBasis.up;
+                cameraRight = cameraBasis.right;
+                break;
+            }
+            case 'Space': {
+                if(fishingRod.state == FishingRod.IDLE){
+
+                    fishingRod.state = FishingRod.CHARGING;
+                    chargeInterval = setInterval(() => {
+                        meter.value = Math.min(meter.value + 0.02, meter.max);
+                        fishingRod.charge = meter.value;
+                    }, 16);
+
+                }else if(fishingRod.state == FishingRod.FISHING){
+                    fishingRod.state = FishingRod.REELING;
+                }
+            }
+        }
+    });
+
+</script>
+
+
+<script>
+    (function() {
+        const canvas = document.getElementById('glCanvas');
+        const gl = canvas.getContext('webgl2');
+
+        if (!gl) {
+            alert('WebGL 2 not supported in this browser');
+            throw new Error('WebGL 2 not supported');
+        }
+
+        const vertexShaderSource = vsSource;
+        const fragmentShaderSource = fsSource;
+
+        let program, positionLocation, resolutionLocation, timeLocation;
+        let cameraOriginLocation, cameraForwardLocation, cameraUpLocation, cameraRightLocation;
+        let lightCenterLocation, maxBouncesLocation, ambientStrengthLocation, lightStrengthLocation;
+        let vao, positionBuffer;
+
+        function createShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                throw new Error(gl.getShaderInfoLog(shader));
+            }
+
+            return shader;
+        }
+
+        function createProgram(gl, vsSource, fsSource) {
+            const vs = createShader(gl, gl.VERTEX_SHADER, vsSource);
+            const fs = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
+            const prog = gl.createProgram();
+            gl.attachShader(prog, vs);
+            gl.attachShader(prog, fs);
+            gl.linkProgram(prog);
+
+            if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+                throw new Error(gl.getProgramInfoLog(prog));
+            }
+
+            return prog;
+        }
+
+        const positions = new Float32Array([// placeholders pretty sure
+            -1, -1,
+            1, -1,
+            -1, 1,
+            1, 1
+        ]);
+
+        // Initialize buffers
+        function initBuffers() {
+            positionBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+            vao = gl.createVertexArray();
+            gl.bindVertexArray(vao);
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.enableVertexAttribArray(positionLocation);
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+            gl.bindVertexArray(null);
+        }
+
+        // // declare location variables for entities
+        let MAX_PRIMITIVES, PRIMITIVE_SIZE, TOTAL_SIZE;
+        let ubo, cpuBuffer, cpuView;
+
+        function initEntitiesBuffer() {
+            // get the index of the uniform block declared in the shader
+            const blockIndex = gl.getUniformBlockIndex(program, "PrimitiveBlock");
+            // ensure shader found the block
+            if (blockIndex === gl.INVALID_INDEX) { console.error("Uniform block 'PrimitiveBlock' not found in shader!"); }
+            // assign this block index to binding point 0
+            gl.uniformBlockBinding(program, blockIndex, 0);
+            // create the UBO buffer object
+            ubo = gl.createBuffer();
+            gl.bindBuffer(gl.UNIFORM_BUFFER, ubo);
+            // define sizes
+            MAX_PRIMITIVES = 40;
+            PRIMITIVE_SIZE = 112; // std140 padded size of one Primitive
+            TOTAL_SIZE = MAX_PRIMITIVES * PRIMITIVE_SIZE + 16; // +16 bytes so primitiveCount sits on its own 16-byte aligned block
+            // allocate GPU memory for the UBO
+            gl.bufferData(gl.UNIFORM_BUFFER, TOTAL_SIZE, gl.DYNAMIC_DRAW);
+            // bind this UBO to binding point 0
+            gl.bindBufferBase(gl.UNIFORM_BUFFER, 0, ubo);
+            // cleanup
+            gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+            // allocate a chunk of bytes in RAM
+            cpuBuffer = new ArrayBuffer(TOTAL_SIZE);
+            // tool to write numbers into the buffer at exact offsets
+            cpuView = new DataView(cpuBuffer);
+        }
+
+        function initShaderProgram() {
+            try {
+                program = createProgram(gl, vsSource, fsSource);
+                gl.useProgram(program);
+                positionLocation = gl.getAttribLocation(program, 'position');
+                resolutionLocation = gl.getUniformLocation(program, 'u_resolution');
+                timeLocation = gl.getUniformLocation(program, 'u_time');
+
+                // camera
+                cameraOriginLocation = gl.getUniformLocation(program, 'u_cameraOrigin');
+                cameraForwardLocation = gl.getUniformLocation(program, 'u_cameraForward');
+                cameraUpLocation = gl.getUniformLocation(program, 'u_cameraUp');
+                cameraRightLocation = gl.getUniformLocation(program, 'u_cameraRight');
+
+                // lighting
+                lightCenterLocation = gl.getUniformLocation(program, 'u_lightCenter');
+                maxBouncesLocation = gl.getUniformLocation(program, 'u_maxBounces');
+                ambientStrengthLocation = gl.getUniformLocation(program, 'u_ambientStrength');
+                lightStrengthLocation = gl.getUniformLocation(program, 'u_lightStrength');
+                initBuffers();
+
+                // initialize the UBO for the primitives data from the entities
+                initEntitiesBuffer();
+
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        initShaderProgram();
+
+        /**
+         * Buffer the entities primitives into the fragment shader
+         */
+        function bufferEntities(gl, program, entities) {
+
+            gl.bindBuffer(gl.UNIFORM_BUFFER, ubo);
+            let offset = 0;
+            let NUM_PRIMITIVES = 0;
+
+            for (let i = 0; i < entities.entities.length; i++) {
+                const entity = entities.entities[i];
+                const nodes = entity.nodes;
+                for (let k = 0; k < nodes.length; k++) {
+                    const node = nodes[k];
+                    packPrimitive(cpuView, offset, node);
+                    offset += PRIMITIVE_SIZE;
+                    NUM_PRIMITIVES++;
+                }
+            }
+
+            // pack primitiveCount (as int32)
+            cpuView.setInt32(MAX_PRIMITIVES * PRIMITIVE_SIZE, NUM_PRIMITIVES, true);
+            // Upload full block into GPU UBO
+            gl.bufferSubData(gl.UNIFORM_BUFFER, 0, cpuBuffer);
+            gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+
+        };
+
+        function fishingRodGameLogic() {
+            if(fishingRod.state == FishingRod.IDLE && fishingRod.hookedFishWeight != 0.0){
+                numCaught++;
+                totalWeight += fishingRod.hookedFishWeight;
+                if(fishingRod.hookedFishWeight > largestCatch){
+                    largestCatch = rod.hookedFishWeight;
+                }
+                if(smallestCatch == 0.0 || fishingRod.hookedFishWeight < smallestCatch){
+                    smallestCatch = fishingRod.hookedFishWeight;
+                }
+                numCaughtTxt.textContent = numCaught;
+                totalWeightTxt.textContent = totalWeight.toFixed(2);
+                largestCatchTxt.textContent = largestCatch.toFixed(2);
+                smallestCatchTxt.textContent = smallestCatch.toFixed(2);
+                console.log("You caught a fish weighing " + fishingRod.hookedFishWeight.toFixed(2) + " units!");
+                fishingRod.hookedFishWeight = 0.0;
+            }
+        }
+
+        // // for debugging
+        // bufferEntities(gl, program, entities)
+
+        let startTime = Date.now();
+        const targetFPS = 20;
+        const frameDuration = 1000 / targetFPS; // milliseconds per frame
+        let lastFrameTime = Date.now();
+        function render() {
+            const now = Date.now();
+            const deltaTime1 = (now - lastFrameTime) / 1000.0;
+
+            if (now - lastFrameTime >= frameDuration) {
+                lastFrameTime = now;
+                const deltaTime = (Date.now() - startTime) / 1000.0;
+
+                // update day night cycle
+                updateLightLocation(deltaTime);
+
+                // update the animations of the entities
+                entities.animate(deltaTime);
+
+                fishingRodGameLogic();
+
+                gl.viewport(0, 0, canvas.width, canvas.height);
+                gl.clearColor(0, 0, 0, 1);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+
+                gl.useProgram(program);
+                gl.bindVertexArray(vao);
+
+                gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
+                gl.uniform1f(timeLocation, deltaTime);
+
+                // camera
+                gl.uniform3f(cameraOriginLocation, cameraOrigin.x, cameraOrigin.y, cameraOrigin.z);
+                gl.uniform3f(cameraForwardLocation, cameraForward.x, cameraForward.y, cameraForward.z);
+                gl.uniform3f(cameraUpLocation, cameraUp.x, cameraUp.y, cameraUp.z); 
+                gl.uniform3f(cameraRightLocation, cameraRight.x, cameraRight.y, cameraRight.z); 
+
+                // lighting
+                gl.uniform3f(lightCenterLocation, lightCenter.x, lightCenter.y, lightCenter.z);
+                gl.uniform1i(maxBouncesLocation, maxBounces);
+                gl.uniform1f(ambientStrengthLocation, ambientStrength);
+                gl.uniform1f(lightStrengthLocation, lightStrength);
+
+                // update the buffers related to the entities
+                bufferEntities(gl, program, entities)
+
+                // render using the shaders
+                gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            }
+
+            requestAnimationFrame(render);
+        }
+
+        requestAnimationFrame(render);
+
+    })();
+</script>
+
+</body>
+</html>

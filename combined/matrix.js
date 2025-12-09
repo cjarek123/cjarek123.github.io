@@ -140,13 +140,13 @@ class Matrix4 {
 
     transformVec3(v) {
         const m = this.m;
-        const x = v[0], y = v[1], z = v[2];
+        const x = v.x, y = v.y, z = v.z;
 
-        return [
+        return new Vec3(
             m[0] * x + m[4] * y + m[8]  * z + m[12],
             m[1] * x + m[5] * y + m[9]  * z + m[13],
             m[2] * x + m[6] * y + m[10] * z + m[14]
-        ];
+        );
     }
 }
 window.Matrix4 = Matrix4;

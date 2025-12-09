@@ -17,19 +17,16 @@ const fsSource = `#version 300 es
     uniform vec3 u_cameraOrigin;
     uniform vec3 u_cameraForward;
     uniform vec3 u_cameraUp;
+    uniform vec3 u_cameraRight;
 
     // lighting
     uniform vec3 u_lightCenter;
     uniform int u_maxBounces;
     uniform float u_ambientStrength;
     uniform float u_lightStrength;
-    uniform int u_sph1Mat;
-    uniform int u_sph2Mat;
-    uniform int u_sph3Mat;
 
     // Struct for general primitive
     struct Primitive {
-        mat4 localMatrix;
         mat4 worldMatrix;
         vec3 color;
         float reflectivity;
@@ -94,12 +91,11 @@ const fsSource = `#version 300 es
     // Initialize scene objects (light sphere)
     void initLightSphere() {
         // initialize the light sphere
-        mat4 localMatrix = mat4(1.0);
-        localMatrix[3][0] = u_lightCenter.x;
-        localMatrix[3][1] = u_lightCenter.y;
-        localMatrix[3][2] = u_lightCenter.z;
-        lightSphere.localMatrix = localMatrix;
-        lightSphere.worldMatrix = mat4(1.0);
+        mat4 worldMatrix = mat4(1.0);
+        worldMatrix[3][0] = u_lightCenter.x;
+        worldMatrix[3][1] = u_lightCenter.y;
+        worldMatrix[3][2] = u_lightCenter.z;
+        lightSphere.worldMatrix = worldMatrix;
         lightSphere.color = vec3(1.0, 1.0, 1.0)  * (u_lightStrength / 3.0);
         lightSphere.reflectivity = 0.0;
         lightSphere.refractiveIndex = 0.0;
@@ -115,10 +111,10 @@ const fsSource = `#version 300 es
     /**
      * 0 - Cone Intersection Check
      */
-    bool intersectCone(Ray ray, mat4 localMatrix, mat4 worldMatrix, float cone_radius, float cone_height, out float t, out vec3 normal) {
+    bool intersectCone(Ray ray, mat4 worldMatrix, float cone_radius, float cone_height, out float t, out vec3 normal) {
         
         // object-to-world and its inverse
-        mat4 M = worldMatrix * localMatrix;
+        mat4 M = worldMatrix;
         mat4 invM = inverse(M);
 
         // transform ray into local space
@@ -216,9 +212,9 @@ const fsSource = `#version 300 es
     /**
      * 1 - Cylinder Intersection Check
      */
-    bool intersectCylinder(Ray ray, mat4 localMatrix, mat4 worldMatrix, float cylinder_radius, float cylinder_height, out float t, out vec3 normal) {
+    bool intersectCylinder(Ray ray, mat4 worldMatrix, float cylinder_radius, float cylinder_height, out float t, out vec3 normal) {
 
-        mat4 M = worldMatrix * localMatrix;
+        mat4 M = worldMatrix;
         mat4 invM = inverse(M);
 
         vec3 o = (invM * vec4(ray.origin, 1.0)).xyz;
@@ -292,10 +288,9 @@ const fsSource = `#version 300 es
     /**
      * 2 - Ellipsoid Intersection Check
      */
-    bool intersectEllipsoid(Ray ray, mat4 localMatrix, mat4 worldMatrix, float sphere_radius_x, float sphere_radius_y, float sphere_radius_z, out float t, out vec3 normal) {
+    bool intersectEllipsoid(Ray ray, mat4 worldMatrix, float sphere_radius_x, float sphere_radius_y, float sphere_radius_z, out float t, out vec3 normal) {
         
-        // bring the ray into the ellipsoid's local space
-        mat4 M = worldMatrix * localMatrix;
+        mat4 M = worldMatrix;
         mat4 invM = inverse(M);
 
         vec3 localOrigin    = (invM * vec4(ray.origin, 1.0)).xyz;
@@ -358,9 +353,9 @@ const fsSource = `#version 300 es
     /**
      * 3 - RectPrism Intersection Check
      */
-    bool intersectRectPrism(Ray ray, mat4 localMatrix, mat4 worldMatrix, float sx, float sy, float sz, out float t, out vec3 normal) {
+    bool intersectRectPrism(Ray ray, mat4 worldMatrix, float sx, float sy, float sz, out float t, out vec3 normal) {
 
-        mat4 M = worldMatrix * localMatrix;
+        mat4 M = worldMatrix;
         mat4 invM = inverse(M);
 
         vec3 o = (invM * vec4(ray.origin, 1.0)).xyz;
@@ -410,8 +405,9 @@ const fsSource = `#version 300 es
     /**
      * 4 - Torus Intersection Check
      */
-    bool intersectTorus(Ray ray, mat4 localMatrix, mat4 worldMatrix, float R, float r, out float t, out vec3 normal) {
-        mat4 M = worldMatrix * localMatrix;
+    bool intersectTorus(Ray ray, mat4 worldMatrix, float R, float r, out float t, out vec3 normal) {
+        
+        mat4 M = worldMatrix;
         mat4 invM = inverse(M);
 
         vec3 O = (invM * vec4(ray.origin, 1.0)).xyz;
@@ -451,15 +447,15 @@ const fsSource = `#version 300 es
         // call shape intersection function
         switch (shapeType) {
             case 0: // cone
-                return intersectCone(ray, primitive.localMatrix, primitive.worldMatrix, primitive.field1, primitive.field2, t, normal);
+                return intersectCone(ray, primitive.worldMatrix, primitive.field1, primitive.field2, t, normal);
             case 1: // cylinder
-                return intersectCylinder(ray, primitive.localMatrix, primitive.worldMatrix, primitive.field1, primitive.field2, t, normal);
+                return intersectCylinder(ray, primitive.worldMatrix, primitive.field1, primitive.field2, t, normal);
             case 2: // ellipsoid
-                return intersectEllipsoid(ray, primitive.localMatrix, primitive.worldMatrix, primitive.field1, primitive.field2, primitive.field3, t, normal);
+                return intersectEllipsoid(ray, primitive.worldMatrix, primitive.field1, primitive.field2, primitive.field3, t, normal);
             case 3: // rectprism
-                return intersectRectPrism(ray, primitive.localMatrix, primitive.worldMatrix, primitive.field1, primitive.field2, primitive.field3, t, normal);
+                return intersectRectPrism(ray, primitive.worldMatrix, primitive.field1, primitive.field2, primitive.field3, t, normal);
             case 4: // torus
-                return intersectTorus(ray, primitive.localMatrix, primitive.worldMatrix, primitive.field1, primitive.field2, t, normal);
+                return intersectTorus(ray, primitive.worldMatrix, primitive.field1, primitive.field2, t, normal);
             default:
                 return false;
         }
@@ -668,9 +664,9 @@ const fsSource = `#version 300 es
 
         // instantiate camera view ray
         vec3 origin = u_cameraOrigin;
-        vec3 forward = u_cameraForward;
-        vec3 up      = u_cameraUp;
-        vec3 right   = normalize(cross(up, forward));
+        vec3 forward = normalize(u_cameraForward);
+        vec3 up      = normalize(u_cameraUp);
+        vec3 right   = normalize(u_cameraRight);
         float fov = 1.5;
         vec2 uv = (gl_FragCoord.xy - 0.5 * u_resolution) / u_resolution.y;
         vec3 direction = normalize(forward * fov + right * uv.x + up * uv.y);
