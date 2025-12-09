@@ -135,12 +135,16 @@
     }
 
     // camera variables
-    const cameraOrigin = new Vec3(0.0, -45.0, 50.0); // adjust this
+    // const cameraOrigin = new Vec3(0.0, -45.0, 50.0); // adjust this
+    // const standardCameraForward = new Vec3(0.0, 1.0, 0.0);
+    // const standardCameraUp = new Vec3(0.0, 0.0, 1.0);
+    // const standardCameraRight = new Vec3(-1.0,0.0,0.0);
+    // let newCameraForward = new Vec3(0.0, 100.0, -45.0); // adjust this
+    const cameraOrigin = new Vec3(30.0, 60.0, 50.0); // adjust this
     const standardCameraForward = new Vec3(0.0, 1.0, 0.0);
     const standardCameraUp = new Vec3(0.0, 0.0, 1.0);
     const standardCameraRight = new Vec3(-1.0,0.0,0.0);
-
-    let newCameraForward = new Vec3(0.0, 100.0, -45.0); // adjust this
+    let newCameraForward = new Vec3(-100.0, -100.0, -45.0); // adjust this
     let cameraBasis = updateCameraBasisKeepUp(newCameraForward)
     let cameraForward = cameraBasis.forward;
     let cameraUp = cameraBasis.up;
@@ -226,7 +230,7 @@
         }
         // fishing rod
         const rods = new Entities();
-        fishingRod = new FishingRod(new Vec3(1.0, 1.0, 1.0), new Vec3(0.0, 10.0, 5.0), 1.0);
+        fishingRod = new FishingRod(new Vec3(1.0, 1.0, 1.0), new Vec3(0.0, 10.0, 25.0), 2.0);
         rods.addEntity(fishingRod);
         // dock
         const docks = new Entities();
@@ -503,6 +507,25 @@
 
         };
 
+        function fishingRodGameLogic() {
+            if(fishingRod.state == FishingRod.IDLE && fishingRod.hookedFishWeight != 0.0){
+                numCaught++;
+                totalWeight += fishingRod.hookedFishWeight;
+                if(fishingRod.hookedFishWeight > largestCatch){
+                    largestCatch = rod.hookedFishWeight;
+                }
+                if(smallestCatch == 0.0 || fishingRod.hookedFishWeight < smallestCatch){
+                    smallestCatch = fishingRod.hookedFishWeight;
+                }
+                numCaughtTxt.textContent = numCaught;
+                totalWeightTxt.textContent = totalWeight.toFixed(2);
+                largestCatchTxt.textContent = largestCatch.toFixed(2);
+                smallestCatchTxt.textContent = smallestCatch.toFixed(2);
+                console.log("You caught a fish weighing " + fishingRod.hookedFishWeight.toFixed(2) + " units!");
+                fishingRod.hookedFishWeight = 0.0;
+            }
+        }
+
         // // for debugging
         // bufferEntities(gl, program, entities)
 
@@ -523,6 +546,8 @@
 
                 // update the animations of the entities
                 entities.animate(deltaTime);
+
+                fishingRodGameLogic();
 
                 gl.viewport(0, 0, canvas.width, canvas.height);
                 gl.clearColor(0, 0, 0, 1);
