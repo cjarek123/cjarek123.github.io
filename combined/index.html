@@ -5,59 +5,95 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>CS 412/512 Computer Graphics Final Project</title>
     <style>
-        body { 
-            margin: 0; 
-            background: #111; 
-            color: #ccc;
-            font-family: monospace;
-            padding: 20px;
+        body {
+        background: #111;
+        color: #ccc;
+        font-family: monospace;
         }
+
         textarea {
-            background: #222;
-            color: #0f0;
-            font: 14px monospace;
-            width: 800px;
-            height: 600px;
+        background: #222;
+        color: #0f0;
+        font: 14px monospace;
+        width: 400px;
+        height: 250px;
         }
+
         canvas {
-            border: 1px solid #444;
-        }
-        .container {
-            display: flex;
-            gap: 20px;
-            align-items: flex-start;
-        }
-
-        .canvas-container {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .editor-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .controls {
-            margin-top: 10px;
-        }
-        .controls label {
-            display: block;
-            margin: 5px 0;
+        border: 1px solid #444;
         }
     </style>
 </head>
+
 <body>
 
-<h2>CS 412/512 Computer Graphics Final Project</h2>
+    <h2>Interactive Controls & Geometric Primitives</h2>
+  <div style="display: flex; gap: 10px; align-items: flex-start;">
+    <div style="display: flex; flex-direction: column;">
+      <h2>Hold SPACE to begin!</h2>
+      <div><canvas id="glCanvas" width="800" height="550"></canvas></div>
+      <div><meter id="charge-meter" value ="0" min="0" max="1" low="0.3" high="0.7" optimum="0.8" style="width: 800px; height: 50px;"></meter></div>
+    </div>
+    
+    <table>
+      <tr style="vertical-align:top;">
+        <tr><td colspan="3"><h2>Scoreboard</h2></td>
+      </tr>
+      <tr>
+        <td>Number of Fish Caught:</td>
+        <td id="num-caught" width="30px">0</td>
+      </tr>
+      <tr>
+        <td>Total Weight: </td>
+        <td id="total-weight" width="30px">0.0</td>
+      </tr>
+      <tr>
+        <td>Largest Catch:</td>
+        <td id="largest-catch" width="30px">0.0</td>
+      </tr>
+      <tr>
+        <td>Smallest Catch:</td>
+        <td id="smallest-catch" width="30px">0.0</td>
+      </tr>
+    </table>
+    </div>
+    </div>
+  </div>
 
-<div class="container">
+<!-- <div class="container">
 
     <div class="canvas-container">
-        <canvas id="glCanvas" width="900" height="600"></canvas>
+        <h2>CS 412/512 Computer Graphics Final Project</h2>
+        <h2>Hold SPACE to begin!</h2>
+        <canvas id="glCanvas" width="800" height="600"></canvas>
+        <div><meter id="charge-meter" value ="0" min="0" max="1" low="0.3" high="0.7" optimum="0.8" style="width: 550px; height: 50px;"></meter></div>
     </div>
 
-</div>
+    <div style="display: flex; flex-direction: column;">
+        <table>
+            <tr style="vertical-align:top;">
+                <tr><td colspan="3"><h2>Scoreboard</h2></td>
+            </tr>
+            <tr>
+                <td>Number of Fish Caught:</td>
+                <td id="num-caught" width="30px">0</td>
+            </tr>
+            <tr>
+                <td>Total Weight: </td>
+                <td id="total-weight" width="30px">0.0</td>
+            </tr>
+            <tr>
+                <td>Largest Catch:</td>
+                <td id="largest-catch" width="30px">0.0</td>
+            </tr>
+            <tr>
+                <td>Smallest Catch:</td>
+                <td id="smallest-catch" width="30px">0.0</td>
+            </tr>
+        </table>
+    </div>
+
+</div> -->
 
 <script src="materials.js"></script>
 <script src="vector.js"></script>
@@ -68,8 +104,8 @@
 <script src="shaders.js"></script>
 
 
-<script src="entities/testentity.js"></script>
 <script src="entities/fish.js"></script>
+<script src="entities/fishingrod.js"></script>
 <script src="entities/dock.js"></script>
 <script src="entities/river.js"></script>
 <script src="entities/grass.js"></script>
@@ -156,7 +192,7 @@
     const dayInSeconds = 60.0;
     let lightCenter = new Vec3(0.0, 0.0, 200.0);
     let lightStrength = 3.5;
-    let ambientStrength = 0.05;
+    let ambientStrength = 0.5;
 
     function updateLightLocation(deltaTime) {
         let rem = (deltaTime % dayInSeconds) / dayInSeconds
@@ -208,16 +244,22 @@
         return fish
     }
 
+    let fishingRod, fishes;
+
     /**
      * Initialize the entities of the game
      */
     function initEntities() {
         // fishes in scene
-        const fishes = new Entities(); // defines the entities/objects of the scene/game
+        fishes = new Entities(); // defines the entities/objects of the scene/game
         for (let i = 0; i < 6; i++) {
             let fish = initFish();
             fishes.addEntity(fish);
         }
+        // fishing rod
+        const rods = new Entities();
+        fishingRod = new FishingRod(new Vec3(1.0, 1.0, 1.0), new Vec3(0.0, 10.0, 5.0), 1.0);
+        rods.addEntity(fishingRod);
         // dock
         const docks = new Entities();
         let dock = new Dock(new Vec3(0.396, 0.263, 0.129), new Vec3(0.0, 9.0, 3.0), 1.0);
@@ -234,12 +276,10 @@
         grassBlocks.addEntity(grassBlock2);
         // pine trees
         const pineTrees = new Entities();
-        let pineTree1 = new PineTree(new Vec3(0.18, 0.12, 0.05), new Vec3(0.0, 0.10, 0.0), new Vec3(0.0, 165 + Math.random() * 25, 7.0), 1.0);
-        let pineTree2 = new PineTree(new Vec3(0.18, 0.12, 0.05), new Vec3(0.0, 0.10, 0.0), new Vec3(75.0, 165 + Math.random() * 25, 7.0), 1.0);
-        let pineTree3 = new PineTree(new Vec3(0.18, 0.12, 0.05), new Vec3(0.0, 0.10, 0.0), new Vec3(-75.0, 165 + Math.random() * 25, 7.0), 1.0);
+        let pineTree1 = new PineTree(new Vec3(0.18, 0.12, 0.05), new Vec3(0.0, 0.10, 0.0), new Vec3(50.0, 160 + Math.random() * 30, 7.0), 1.0);
+        let pineTree2 = new PineTree(new Vec3(0.18, 0.12, 0.05), new Vec3(0.0, 0.10, 0.0), new Vec3(-50.0, 160 + Math.random() * 30, 7.0), 1.0);
         pineTrees.addEntity(pineTree1);
         pineTrees.addEntity(pineTree2);
-        pineTrees.addEntity(pineTree3);
         // merge entities
         const entities = new Entities();
         // entities.addEntities(fishes);
@@ -247,11 +287,66 @@
         entities.addEntities(rivers); // 2 prim
         entities.addEntities(grassBlocks); // 2 prim
         entities.addEntities(pineTrees); // 12 prim
-        return entities; // 18
+        entities.addEntities(rods); // 18 prim
+        return entities; // 18 + 18 = 36
     }
     
     // entities
     const entities = initEntities();
+
+</script>
+
+
+<script>
+    /**
+     * game logic
+     */ 
+
+    ////////////////////////////////////////////////////////////////////////////////
+    //                               CHARGE METER
+    ////////////////////////////////////////////////////////////////////////////////
+    const meter = document.getElementById("charge-meter");
+    let chargeInterval;
+
+    document.addEventListener('keydown', e=> {
+        if(e.code === "Space"){
+            if(fishingRod.state == FishingRod.IDLE){
+
+                fishingRod.state = FishingRod.CHARGING;
+                chargeInterval = setInterval(() => {
+                    meter.value = Math.min(meter.value + 0.02, meter.max);
+                    fishingRod.charge = meter.value;
+                }, 16);
+
+            }else if(fishingRod.state == FishingRod.FISHING){
+                fishingRod.state = FishingRod.REELING;
+            }
+        }
+    });
+
+    document.addEventListener('keyup', e=> {
+        if(e.code === "Space"){
+            if(fishingRod.state == FishingRod.CHARGING){
+    
+                fishingRod.state = FishingRod.RELEASING;
+                clearInterval(chargeInterval);
+                //launch the bobber here.
+                meter.value = 0;
+
+            }else if(fishingRod.state == FishingRod.REELING){
+                fishingRod.state = FishingRod.FISHING;
+            }
+        }
+    })
+
+    const numCaughtTxt = document.getElementById("num-caught");
+    const totalWeightTxt = document.getElementById("total-weight");
+    const largestCatchTxt = document.getElementById("largest-catch");
+    const smallestCatchTxt = document.getElementById("smallest-catch");
+    let numCaught = 0;
+    let totalWeight = 0.0;
+    let largestCatch = 0.0;
+    let smallestCatch = 0.0;
 
 </script>
 
