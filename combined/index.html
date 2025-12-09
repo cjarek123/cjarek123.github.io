@@ -111,7 +111,7 @@
     let cameraRight = cameraBasis.right;
 
     document.addEventListener('keydown', e => {
-        const radians = Math.PI / 32;
+        const radians = Math.PI / 64;
         switch (e.key) {
             case 'ArrowLeft': {
                 const mat4 = new Matrix4().rotateZ(radians);
@@ -224,12 +224,12 @@
         docks.addEntity(dock);
         // river
         const rivers = new Entities();
-        let river = new River(new Vec3(0.0, 0.3, 1.0), new Vec3(1.0, 1.0, 1.0), new Vec3(0.0, 70.0, 0.0), 1.0);
+        let river = new River(new Vec3(0.1, 0.75, 0.95), new Vec3(1.0, 1.0, 1.0), new Vec3(0.0, 70.0, 0.0), 1.0);
         rivers.addEntity(river);
         // grass
         const grassBlocks = new Entities();
         let grassBlock1 = new Grass(new Vec3(0.0, 0.6, 0.05), new Vec3(0.0, -50.0, 2.0), 1.0);
-        let grassBlock2 = new Grass(new Vec3(0.0, 0.6, 0.05), new Vec3(0.0, 200.0, 2.0), 1.0);
+        let grassBlock2 = new Grass(new Vec3(0.0, 0.6, 0.05), new Vec3(0.0, 190.0, 2.0), 1.0);
         grassBlocks.addEntity(grassBlock1);
         grassBlocks.addEntity(grassBlock2);
         // pine trees
