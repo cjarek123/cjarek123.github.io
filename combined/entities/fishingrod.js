@@ -8,7 +8,7 @@ class FishingRod extends Entity {
     static RELEASING = 2;
     static FISHING = 3;
     static REELING = 4;
-    static REELSPEED = 0.2;
+    static REELSPEED = 1.0;
 
     fishHooked = false;
     hookedFishWeight = 0.0;
@@ -24,13 +24,14 @@ class FishingRod extends Entity {
         this.bobberY = 0.0;
         this.bobberZ = 0.0;
         this.launchSpdX = 0.0;
-        this.launchSpdY = 10.0;
-        this.launchSpdZ = -10.0;
+        this.launchSpdY = 20.0;
+        this.launchSpdZ = 15.0;
         this.g = -10.0;
         this.startTime = 0.0;
         this.center = center;
         this.scale_factor = scale_factor;
         this.handle_angle = Math.PI / 2;
+        this.symbolicWaterHeight = -32.5 + this.center.z;
 
         // primitives
         let rodBase = new Cylinder(color, scale_factor*0.2, scale_factor*3.0, MATERIALS.DIFFUSE, 0.0, 0.0);
@@ -45,12 +46,12 @@ class FishingRod extends Entity {
         let ring3 = new Torus(color, scale_factor*0.2, scale_factor*0.03, MATERIALS.DIFFUSE, 0.0, 0.0);
         let ring4 = new Torus(color, scale_factor*0.2, scale_factor*0.03, MATERIALS.DIFFUSE, 0.0, 0.0);
         let ring5 = new Torus(color, scale_factor*0.2, scale_factor*0.03, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let stringA = new Cylinder(color, scale_factor*0.02, scale_factor*2.0, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let stringB = new Cylinder(color, scale_factor*0.02, scale_factor*5.0, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let stringC = new Cylinder(color, scale_factor*0.02, scale_factor*1.0, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let bobberSphere = new Ellipsoid(color, new Vec3(scale_factor*0.2, scale_factor*0.2, scale_factor*0.2), MATERIALS.DIFFUSE, 0.0, 0.0);
-        let bobberHead = new Cylinder(color, scale_factor*0.075, scale_factor*0.05, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let bobberRing = new Torus(color, scale_factor*0.25, scale_factor*0.03, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let stringA = new Cylinder(new Vec3(0.7, 0.7, 0.7), scale_factor*0.02, scale_factor*2.0, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let stringB = new Cylinder(new Vec3(0.7, 0.7, 0.7), scale_factor*0.02, scale_factor*5.0, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let stringC = new Cylinder(new Vec3(0.7, 0.7, 0.7), scale_factor*0.02, scale_factor*1.0, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let bobberSphere = new Ellipsoid(new Vec3(1.0, 0.0, 0.0), new Vec3(scale_factor*0.25, scale_factor*0.25, scale_factor*0.25), MATERIALS.DIFFUSE, 0.0, 0.0);
+        let bobberHead = new Cylinder(new Vec3(1.0, 0.0, 0.0), scale_factor*0.075, scale_factor*0.05, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let bobberRing = new Torus(new Vec3(1.0, 1.0, 1.0), scale_factor*0.28, scale_factor*0.05, MATERIALS.DIFFUSE, 0.0, 0.0);
 
         // nodes
         this.rodBaseNode = new Node(rodBase);
@@ -72,7 +73,7 @@ class FishingRod extends Entity {
         this.bobberHeadNode = new Node(bobberHead);
         this.bobberRingNode = new Node(bobberRing);
 
-        // tranformations
+        // form tree
         this.handleGripNode.setParent(this.handleArmNode);
         this.handleArmNode.setParent(this.handleBaseNode);
         this.stringANode.setParent(this.coreSphereNode);
@@ -87,9 +88,11 @@ class FishingRod extends Entity {
         this.ring5Node.setParent(this.rodArmNode);
         this.coreCylinderNode.setParent(this.rodBaseNode);
         this.rodArmNode.setParent(this.rodBaseNode);    
-        this.bobberHeadNode.setParent(this.stringBNode);
+        // bobber tree
         this.bobberSphereNode.setParent(this.bobberHeadNode);
         this.bobberRingNode.setParent(this.bobberSphereNode);
+
+        // transformations
 
         // rod arm
         this.rodArmNode.localMatrix.translate(0.0, 0.0, scale_factor*3.5);
@@ -119,6 +122,7 @@ class FishingRod extends Entity {
 
         // update nodes world matrices (need to only call on root nodes)
         this.rodBaseNode.updateWorldMatrix();
+        this.bobberHeadNode.updateWorldMatrix();
 
         this.nodes = [
             // rod
@@ -137,9 +141,11 @@ class FishingRod extends Entity {
             this.ring3Node,
             this.ring4Node,
             this.ring5Node,
+            // strings
             this.stringANode,
             this.stringBNode,
             this.stringCNode,
+            // bobber
             this.bobberHeadNode,
             this.bobberSphereNode,
             this.bobberRingNode
@@ -149,10 +155,8 @@ class FishingRod extends Entity {
 
     animate(deltaTime) {
 
-        const symbolicWaterHeight = -22.5;
-
         switch(this.state){
-            case FishingRod.IDLE:
+            case FishingRod.IDLE: // works
                 console.log("IDLE");
                 this.bobberX = 0.0;
                 this.bobberY = 0.0;
@@ -160,7 +164,7 @@ class FishingRod extends Entity {
                 this.charge = 0.0;
                 break;
                 
-            case FishingRod.CHARGING:
+            case FishingRod.CHARGING: // works
                 console.log("CHARGING");
                 this.bobberX = 0.0;
                 this.bobberY = 0.0;
@@ -168,22 +172,22 @@ class FishingRod extends Entity {
                 this.startTime = Date.now();
                 break;
 
-            case FishingRod.RELEASING:
+            case FishingRod.RELEASING: // realistic curve kind of gone but works
                 console.log("RELEASING");
                 let dt = (Date.now() - this.startTime)*0.001;
                 this.bobberY = this.charge*this.launchSpdY*dt;
                 this.bobberZ = this.charge*this.launchSpdZ*dt + 0.5*this.g*dt*dt;
-                if(this.bobberZ <= symbolicWaterHeight){
+                if(this.bobberZ <= this.symbolicWaterHeight){
                     this.state = FishingRod.FISHING;
                 }
                 break;
 
-            case FishingRod.FISHING:
+            case FishingRod.FISHING: // not working here fully
                 console.log("FISHING");
-                this.bobberZ = symbolicWaterHeight+Math.sin(Date.now()*0.005)*0.2;
+                this.bobberZ = this.symbolicWaterHeight+Math.sin(Date.now()*0.005)*0.2;
                 break;
 
-            case FishingRod.REELING:
+            case FishingRod.REELING: // this works
                 console.log("REELING");
                 this.bobberY -= FishingRod.REELSPEED;
                 if(this.bobberY <= 1.5){
@@ -206,7 +210,7 @@ class FishingRod extends Entity {
         if(this.state == FishingRod.REELING){
             this.handle_angle = (this.handle_angle + (Math.PI/3)) % (2*Math.PI);
         }
-        this.handleBaseNode.localMatrix.rotateX(this.handle_angle);
+        this.handleBaseNode.localMatrix.rotateX(-this.handle_angle);
         this.handleBaseNode.localMatrix.translate(-1.5, 0.0, 0.5);
 
         // string C (SCALE Y COMPONENT OF STRING C TO MODIFY LENGTH)
@@ -217,11 +221,12 @@ class FishingRod extends Entity {
         // // this.stringCNode.localMatrix.rotateY(-strRotX);
         // this.stringCNode.localMatrix.translate(0.0, 0.0, 8.0);
 
-        // bobber
-        this.bobberHeadNode.localMatrix = new Matrix4();
-        // this.bobberHeadNode.localMatrix.rotateX(-Math.PI/4);
-        this.bobberHeadNode.localMatrix.translate(this.bobberX, (5.0*this.bobberY), (5.0+this.bobberZ))
-
+        // update rod tree
         this.rodBaseNode.updateWorldMatrix();
+
+        // bobber
+        this.bobberHeadNode.localMatrix = this.ring5Node.worldMatrix.clone();
+        this.bobberHeadNode.localMatrix.translate(this.bobberX, this.bobberY, this.bobberZ)
+        this.bobberHeadNode.updateWorldMatrix();
     }
 }
