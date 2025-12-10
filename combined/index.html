@@ -34,68 +34,43 @@
       <div><canvas id="glCanvas" width="800" height="550"></canvas></div>
       <div><meter id="charge-meter" value ="0" min="0" max="1" low="0.3" high="0.7" optimum="0.8" style="width: 800px; height: 50px;"></meter></div>
     </div>
+
+        <table>
+            <tr style="vertical-align:top;">
+                <tr><td colspan="3"><h2>Time Left</h2></td>
+            </tr>
+            <tr>
+                <td id="seconds-left" width="100px" style="font-size: 32px;">60.0</td>
+            </tr>
+        </table>
     
-    <table>
-      <tr style="vertical-align:top;">
-        <tr><td colspan="3"><h2>Scoreboard</h2></td>
-      </tr>
-      <tr>
-        <td>Number of Fish Caught:</td>
-        <td width="30px" style="white-space: nowrap;">
-            <span id="num-caught">0</span> / 10
-        </td>
-      </tr>
-      <tr>
-        <td>Total Weight: </td>
-        <td id="total-weight" width="30px">0.0</td>
-      </tr>
-      <tr>
-        <td>Largest Catch:</td>
-        <td id="largest-catch" width="30px">0.0</td>
-      </tr>
-      <tr>
-        <td>Smallest Catch:</td>
-        <td id="smallest-catch" width="30px">0.0</td>
-      </tr>
-    </table>
+        <table>
+        <tr style="vertical-align:top;">
+            <tr><td colspan="3"><h2>Scoreboard</h2></td>
+        </tr>
+        <tr>
+            <td>Number of Fish Caught:</td>
+            <td width="30px" style="white-space: nowrap;">
+                <span id="num-caught">0</span> / 10
+            </td>
+        </tr>
+        <tr>
+            <td>Total Weight: </td>
+            <td id="total-weight" width="30px">0.0</td>
+        </tr>
+        <tr>
+            <td>Largest Catch:</td>
+            <td id="largest-catch" width="30px">0.0</td>
+        </tr>
+        <tr>
+            <td>Smallest Catch:</td>
+            <td id="smallest-catch" width="30px">0.0</td>
+        </tr>
+        </table>
+
     </div>
     </div>
   </div>
-
-<!-- <div class="container">
-
-    <div class="canvas-container">
-        <h2>CS 412/512 Computer Graphics Final Project</h2>
-        <h2>Hold SPACE to begin!</h2>
-        <canvas id="glCanvas" width="800" height="600"></canvas>
-        <div><meter id="charge-meter" value ="0" min="0" max="1" low="0.3" high="0.7" optimum="0.8" style="width: 550px; height: 50px;"></meter></div>
-    </div>
-
-    <div style="display: flex; flex-direction: column;">
-        <table>
-            <tr style="vertical-align:top;">
-                <tr><td colspan="3"><h2>Scoreboard</h2></td>
-            </tr>
-            <tr>
-                <td>Number of Fish Caught:</td>
-                <td id="num-caught" width="30px">0</td>
-            </tr>
-            <tr>
-                <td>Total Weight: </td>
-                <td id="total-weight" width="30px">0.0</td>
-            </tr>
-            <tr>
-                <td>Largest Catch:</td>
-                <td id="largest-catch" width="30px">0.0</td>
-            </tr>
-            <tr>
-                <td>Smallest Catch:</td>
-                <td id="smallest-catch" width="30px">0.0</td>
-            </tr>
-        </table>
-    </div>
-
-</div> -->
 
 <script src="materials.js"></script>
 <script src="vector.js"></script>
@@ -274,6 +249,7 @@
     })
 
     const numCaughtTxt = document.getElementById("num-caught");
+    const secondsLeftTxt = document.getElementById("seconds-left");
     const totalWeightTxt = document.getElementById("total-weight");
     const largestCatchTxt = document.getElementById("largest-catch");
     const smallestCatchTxt = document.getElementById("smallest-catch");
@@ -284,6 +260,7 @@
 
     let gameEnded;
     let gameWon;
+    let deltaTime;
 
     document.addEventListener('keydown', e => {
         const radians = Math.PI / 64;
@@ -514,8 +491,15 @@
             }
             // check game win
             if (newFishes.entities.length == 0) {
+                secondsLeftTxt.textContent = (60.0 - deltaTime).toFixed(2)
                 gameEnded = true;
                 gameWon = true;
+            } else if (deltaTime >= 60) { // game lost
+                secondsLeftTxt.textContent = (0.0).toFixed(2);
+                gameEnded = true;
+                gameWon = false;
+            } else {
+                secondsLeftTxt.textContent = (60.0 - deltaTime).toFixed(2)
             }
             // update entities with fish caught removed
             fishes = newFishes;
@@ -539,17 +523,29 @@
                     }
                 }
             } 
-            // REELING state: when reeling pull the attached fish
+            // REELING state:
             else if (fishingRod.state == FishingRod.REELING) {
-                for (let i = 0; i < fishes.entities.length; i++) {
-                    let cur_fish = fishes.entities[i]
-                    if (cur_fish.state == Fish.HOOKED) {
-                        cur_fish.position.y = fishingRod.bobberY+25-(cur_fish.scale_factor*0.3);
+                if (fishingRod.fishHooked) { // fish on hook, pull the fish
+                    for (let i = 0; i < fishes.entities.length; i++) {
+                        let cur_fish = fishes.entities[i]
+                        if (cur_fish.state == Fish.HOOKED) {
+                            cur_fish.position.y = fishingRod.bobberY+25-(cur_fish.scale_factor*0.15);
+                        }
+                    }
+                } else { // no fish on hook try catching fish
+                    for (let i = 0; i < fishes.entities.length; i++) {
+                        let cur_fish = fishes.entities[i]
+                        if (Math.abs(cur_fish.position.x - (fishingRod.bobberX+10)) < 1 && Math.abs(cur_fish.position.y - (fishingRod.bobberY+25)) < 1.5 && Math.abs(cur_fish.position.z - (fishingRod.bobberZ+25.5)) < 1.5) {
+                            if (cur_fish.state == Fish.SWIMMING) {
+                                fishingRod.fishHooked = true;
+                                cur_fish.state = Fish.HOOKED;
+                            }
+                        }
                     }
                 }
             }
             // IDLE state
-            else if (fishingRod.state == FishingRod.IDLE) {
+            else if (fishingRod.state == FishingRod.IDLE) { // if idle and we have a fish that means we hooked a fish earlier and have caught it now
                 for (let i = 0; i < fishes.entities.length; i++) {
                     let cur_fish = fishes.entities[i]
                     if (cur_fish.state == Fish.HOOKED) {
@@ -570,7 +566,7 @@
 
             if (now - lastFrameTime >= frameDuration) {
                 lastFrameTime = now;
-                const deltaTime = (Date.now() - startTime) / 1000.0;
+                deltaTime = (Date.now() - startTime) / 1000.0;
 
                 if (!gameEnded) {
                     // update day night cycle

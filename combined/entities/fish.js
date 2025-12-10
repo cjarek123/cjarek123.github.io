@@ -62,6 +62,7 @@ class Fish extends Entity {
     }
 
     animate(deltaTime) {
+
         switch(this.state){
             case Fish.SWIMMING:
 
@@ -87,18 +88,10 @@ class Fish extends Entity {
                 
                 this.fishBodyNode.localMatrix = new Matrix4();
                 this.fishBodyNode.localMatrix.scale(this.scale_factor*1.5, this.scale_factor*0.2, this.scale_factor*0.5);
-                this.fishBodyNode.localMatrix.translate(this.position.x, this.position.y, this.position.z);
+                this.fishBodyNode.localMatrix.translate(this.position.x, this.position.y, this.position.z+(Math.sin(10*deltaTime)*0.5));
                 this.fishBodyNode.updateWorldMatrix();
                 break;
 
-            // case Fish.CAUGHT:
-            //     //record size and reset fish
-            //     this.size = (Math.random()+0.75)*(Math.random()+0.75); //0.25 to 1.0
-            //     this.x = -18.0;
-            //     this.y = 0;
-            //     this.z = -(Math.floor(Math.random()*10)*2)-10;
-            //     this.state = fish.SWIMMING;
-            //     break;
         }
     }
 }

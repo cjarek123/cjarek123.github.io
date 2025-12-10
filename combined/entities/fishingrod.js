@@ -10,8 +10,6 @@ class FishingRod extends Entity {
     static REELING = 4;
     static REELSPEED = 1.0;
 
-    hookedFishWeight = 0.0;
-
     constructor(center, scale_factor) {
 
         super();
@@ -228,5 +226,57 @@ class FishingRod extends Entity {
         this.bobberHeadNode.localMatrix = this.ring5Node.worldMatrix.clone();
         this.bobberHeadNode.localMatrix.translate(this.bobberX, this.bobberY, this.bobberZ)
         this.bobberHeadNode.updateWorldMatrix();
+
+        if (!this.fishHooked) {
+            this.nodes = [
+                // rod
+                this.rodBaseNode,
+                this.rodArmNode,
+                // core
+                this.coreCylinderNode,
+                this.coreSphereNode,
+                // handle
+                this.handleBaseNode,
+                this.handleArmNode,
+                this.handleGripNode,
+                // rings
+                this.ring1Node,
+                this.ring2Node,
+                this.ring3Node,
+                this.ring4Node,
+                this.ring5Node,
+                // strings
+                this.stringANode,
+                this.stringBNode,
+                this.stringCNode,
+                // bobber
+                this.bobberHeadNode,
+                this.bobberSphereNode,
+                this.bobberRingNode
+            ]
+        } else {
+            this.nodes = [
+                // rod
+                this.rodBaseNode,
+                this.rodArmNode,
+                // core
+                this.coreCylinderNode,
+                this.coreSphereNode,
+                // handle
+                this.handleBaseNode,
+                this.handleArmNode,
+                this.handleGripNode,
+                // rings
+                this.ring1Node,
+                this.ring2Node,
+                this.ring3Node,
+                this.ring4Node,
+                this.ring5Node,
+                // strings
+                this.stringANode,
+                this.stringBNode,
+                this.stringCNode,
+            ]
+        }
     }
 }
