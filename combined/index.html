@@ -27,7 +27,7 @@
 
 <body>
 
-    <h2>Interactive Controls & Geometric Primitives</h2>
+    <h2>CS 412/512 Final Project - Fishing Game</h2>
   <div style="display: flex; gap: 10px; align-items: flex-start;">
     <div style="display: flex; flex-direction: column;">
       <h2>Hold SPACE to begin!</h2>
@@ -140,11 +140,19 @@
     const standardCameraUp = new Vec3(0.0, 0.0, 1.0);
     const standardCameraRight = new Vec3(-1.0,0.0,0.0);
     let newCameraForward = new Vec3(0.0, 100.0, -45.0); // adjust this
+
     // const cameraOrigin = new Vec3(-30.0, 60.0, 50.0); // adjust this
     // const standardCameraForward = new Vec3(0.0, 1.0, 0.0);
     // const standardCameraUp = new Vec3(0.0, 0.0, 1.0);
     // const standardCameraRight = new Vec3(-1.0, 0.0, 0.0);
     // let newCameraForward = new Vec3(100.0, -100.0, -45.0); // adjust this
+
+    // const cameraOrigin = new Vec3(-30.0, 60.0, 30.0); // adjust this
+    // const standardCameraForward = new Vec3(0.0, 1.0, 0.0);
+    // const standardCameraUp = new Vec3(0.0, 0.0, 1.0);
+    // const standardCameraRight = new Vec3(-1.0, 0.0, 0.0);
+    // let newCameraForward = new Vec3(100.0, -100.0, -45.0); // adjust this
+
     let cameraBasis = updateCameraBasisKeepUp(newCameraForward)
     let cameraForward = cameraBasis.forward;
     let cameraUp = cameraBasis.up;
@@ -162,7 +170,7 @@
     const maxBounces = 6;
     const orbitHeight = 200.0;
     const dayInSeconds = 60.0;
-    let lightCenter = new Vec3(0.0, 0.0, 200.0);
+    let lightCenter = new Vec3(0.0, 110.0, 200.0);
     let lightStrength = 3.5;
     let ambientStrength = 0.5;
 
@@ -173,13 +181,13 @@
             ambientStrength = 0.5;
             let cos = Math.cos(rem * 2 * Math.PI);
             let sin = Math.sin(rem * 2 * Math.PI);
-            lightCenter = new Vec3(orbitHeight * cos, 0.0, orbitHeight * sin);
+            lightCenter = new Vec3(orbitHeight * cos, 110.0, orbitHeight * sin);
         } else {
             lightStrength = 0.1;
             ambientStrength = 0.1;
             let cos = Math.cos((rem - 0.5) * 2 * Math.PI);
             let sin = Math.sin((rem - 0.5) * 2 * Math.PI);
-            lightCenter = new Vec3(orbitHeight * cos, 0.0, orbitHeight * sin);
+            lightCenter = new Vec3(orbitHeight * cos, 110.0, orbitHeight * sin);
         }
     }
 
@@ -190,32 +198,6 @@
     /**
      * Entity instantiation
      */
-
-    function hsv2rgb(h, s, v) {
-        let c = v * s;
-        let x = c * (1 - Math.abs((h / 60) % 2 - 1));
-        let m = v - c;
-        let r=0, g=0, b=0;
-
-        if (h < 60)      [r,g,b] = [c,x,0];
-        else if (h < 120) [r,g,b] = [x,c,0];
-        else if (h < 180) [r,g,b] = [0,c,x];
-        else if (h < 240) [r,g,b] = [0,x,c];
-        else if (h < 300) [r,g,b] = [x,0,c];
-        else              [r,g,b] = [c,0,x];
-
-        return new Vec3(r+m, g+m, b+m);
-    }
-
-    function initFish() {
-        const hue = Math.random() * 360; // random hue
-        const color = hsv2rgb(hue, 1.0, 1.0);
-        const center = new Vec3(Math.random() * 80 - 40, -(Math.floor(Math.random()*10)*2) + 60, 5.0);
-        const scale_factor = Math.sqrt(Math.random()) * (5 - 1.0) + 1.0;
-        const fish = new Fish(color, center, scale_factor);
-        return fish
-    }
-
     let fishingRod, fishes;
 
     /**
@@ -224,13 +206,13 @@
     function initEntities() {
         // fishes in scene
         fishes = new Entities(); // defines the entities/objects of the scene/game
-        for (let i = 0; i < 6; i++) {
-            let fish = initFish();
+        for (let i = 0; i < 14; i++) {
+            let fish = new Fish();
             fishes.addEntity(fish);
         }
         // fishing rod
         const rods = new Entities();
-        fishingRod = new FishingRod(new Vec3(1.0, 0.0, 1.0), new Vec3(5.0, 0.0, 20.0), 2.0);
+        fishingRod = new FishingRod(new Vec3(1.0, 0.0, 0.0), new Vec3(5.0, 22.0, 9.0), 2.0);
         rods.addEntity(fishingRod);
         // dock
         const docks = new Entities();
@@ -254,13 +236,13 @@
         pineTrees.addEntity(pineTree2);
         // merge entities
         const entities = new Entities();
-        // entities.addEntities(fishes);
+        entities.addEntities(fishes); // 14 prim
         entities.addEntities(docks); // 2 prim
         entities.addEntities(rivers); // 2 prim
         entities.addEntities(grassBlocks); // 2 prim
         entities.addEntities(pineTrees); // 12 prim
         entities.addEntities(rods); // 18 prim
-        return entities; // 18 + 18 = 36
+        return entities; // max is 40
     }
     
     // entities
@@ -433,7 +415,7 @@
             ubo = gl.createBuffer();
             gl.bindBuffer(gl.UNIFORM_BUFFER, ubo);
             // define sizes
-            MAX_PRIMITIVES = 40;
+            MAX_PRIMITIVES = 50;
             PRIMITIVE_SIZE = 112; // std140 padded size of one Primitive
             TOTAL_SIZE = MAX_PRIMITIVES * PRIMITIVE_SIZE + 16; // +16 bytes so primitiveCount sits on its own 16-byte aligned block
             // allocate GPU memory for the UBO
@@ -530,7 +512,7 @@
         // bufferEntities(gl, program, entities)
 
         let startTime = Date.now();
-        const targetFPS = 20;
+        const targetFPS = 30;
         const frameDuration = 1000 / targetFPS; // milliseconds per frame
         let lastFrameTime = Date.now();
         function render() {

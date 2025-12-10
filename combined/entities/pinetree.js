@@ -23,7 +23,7 @@ class PineTree extends Entity {
 
         // translate trunk
         this.trunkNode.localMatrix.translate(center.x, center.y, center.z);
-        this.leaves1Node.localMatrix.translate(0.0,0.0,12.0);
+        this.leaves1Node.localMatrix.translate(0.0,0.0,6.0);
         this.leaves2Node.localMatrix.translate(0.0,0.0,10.0);
         this.leaves3Node.localMatrix.translate(0.0,0.0,8.0);
 

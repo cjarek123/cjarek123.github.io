@@ -5,7 +5,7 @@ class River extends Entity {
         super();
 
         // primitives
-        let river = new RectPrism(waterColor, new Vec3(scale_factor*400.0, scale_factor*160.0, scale_factor*3.0), MATERIALS.REFRACTIVE, 0.25, 2.5);
+        let river = new RectPrism(waterColor, new Vec3(scale_factor*400.0, scale_factor*160.0, scale_factor*3.0), MATERIALS.REFRACTIVE, 0.0, 1.5);
         let riverBed = new RectPrism(dirtColor, new Vec3(scale_factor*400.0, scale_factor*160.0, scale_factor*1.0), MATERIALS.DIFFUSE, 0.0, 0.33);
 
         // nodes

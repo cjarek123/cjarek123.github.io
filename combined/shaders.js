@@ -41,7 +41,7 @@ const fsSource = `#version 300 es
     };
 
     layout(std140) uniform PrimitiveBlock {
-        Primitive primitives[40];
+        Primitive primitives[50];
         int primitiveCount;
     };
 
@@ -111,102 +111,94 @@ const fsSource = `#version 300 es
     /**
      * 0 - Cone Intersection Check
      */
-    bool intersectCone(Ray ray, mat4 worldMatrix, float cone_radius, float cone_height, out float t, out vec3 normal) {
+    bool intersectCone(Ray ray, mat4 worldMatrix, float r, float h, out float t, out vec3 normal) {
         
-        // object-to-world and its inverse
-        mat4 M = worldMatrix;
-        mat4 invM = inverse(M);
+        // Transform ray into local space
+        mat4 invM = inverse(worldMatrix);
+        vec3 O  = (invM * vec4(ray.origin,    1.0)).xyz;
+        vec3 D0 = (invM * vec4(ray.direction, 0.0)).xyz;
 
-        // transform ray into local space
-        vec3 O = (invM * vec4(ray.origin, 1.0)).xyz;
-        vec3 D_un = (invM * vec4(ray.direction, 0.0)).xyz;
+        float scale = length(D0);
+        if (scale < 1e-8) { t = 1e30; return false; }
 
-        float dirScale = length(D_un);
-        if (dirScale < 1e-8) { t = 1e30; normal = vec3(0); return false; }
-        vec3 D = D_un / dirScale;
+        vec3 D = D0 / scale;
 
-        // define cone so apex at z = 0, base center at z = -h, radius r at base
-        float h = cone_height;
-        float r = cone_radius;
         float k = r / h;
         float k2 = k * k;
 
-        // move origin so apex is at z=0: O_apex = O - (0,0,+h/2) if your original cone
-        // definition had apex at +h/2 and base at -h/2. Here we make apex=0 and base=-h.
-        // If your prior local-space used apex at +h/2 & base at -h/2, this shift maps to apex=0.
-        vec3 O_apex = O - vec3(0.0, 0.0, h * 0.5);
-
-        // For quadratic, use coordinates relative to apex:
-        float ox = O_apex.x;
-        float oy = O_apex.y;
-        float oz = O_apex.z;
+        // shift z so apex is at z=0
+        float ox = O.x;
+        float oy = O.y;
+        float oz = O.z - h;
 
         float dx = D.x;
         float dy = D.y;
         float dz = D.z;
 
-        // Quadratic for the infinite cone (apex at origin, axis = -Z):
-        // x^2 + y^2 - (k^2) * z^2 = 0
+        // quadratic coefficients for infinite cone
         float a = dx*dx + dy*dy - k2 * dz*dz;
         float b = 2.0 * (ox*dx + oy*dy - k2 * oz*dz);
         float c = ox*ox + oy*oy - k2 * oz*oz;
 
-        float tLocal = 1e30;
-        vec3 nLocalHit = vec3(0.0);
+        float tHit = 1e30;
+        vec3  nHit = vec3(0);
 
-        // body intersection (finite cone: z in [-h, 0])
-        if (abs(a) > 1e-6) {
-            float delta = b*b - 4.0*a*c;
-            if (delta >= 0.0) {
-                float sd = sqrt(delta);
-                float t0 = (-b - sd) / (2.0 * a);
-                float t1 = (-b + sd) / (2.0 * a);
-                float ts[2] = float[2](t0, t1);
-                for (int i = 0; i < 2; i++) {
-                    float ti = ts[i];
-                    if (ti > 0.001) {
-                        // hit in apex-relative frame
-                        vec3 hit = O_apex + D * ti;
-                        // finite cone extent check: base at z = -h, apex at z = 0
-                        if (hit.z <= 0.0 && hit.z >= -h && ti < tLocal) {
-                            tLocal = ti;
-                            // gradient of F = (x, y, -k^2 * z) for x^2+y^2 - k^2 z^2 = 0
-                            nLocalHit = normalize(vec3(hit.x, hit.y, -k2 * hit.z));
+        // body intersection
+        float disc = b*b - 4.0*a*c;
+        if (disc >= 0.0) {
+            float s = sqrt(disc);
+            float t0 = (-b - s) / (2.0*a);
+            float t1 = (-b + s) / (2.0*a);
+
+            for (int i = 0; i < 2; i++) {
+                float ti = (i == 0 ? t0 : t1);
+                if (ti > 1e-4) {
+                    vec3 p = O + D * ti;
+
+                    // Valid z range: 0 ≤ z ≤ h
+                    if (p.z >= 0.0 && p.z <= h) {
+                        if (ti < tHit) {
+                            tHit = ti;
+
+                            // Gradient of x^2 + y^2 – k^2 (h – z)^2 = 0
+                            float zz = p.z - h;
+                            vec3 grad = vec3(
+                                p.x,
+                                p.y,
+                                -k2 * zz
+                            );
+
+                            nHit = normalize(grad);
                         }
                     }
                 }
             }
         }
 
-        // base disk intersection: plane z = -h (in apex-relative coords)
+        // base disk at z = 0
         if (abs(D.z) > 1e-6) {
-            // plane z = -h
-            float tBase = (-h - O_apex.z) / D.z;
-            if (tBase > 0.001) {
-                vec3 pBase = O_apex + D * tBase;
-                if (length(pBase.xy) <= r && tBase < tLocal) {
-                    tLocal = tBase;
-                    nLocalHit = vec3(0.0, 0.0, -1.0); // outward normal for base
+            float tPlane = (0.0 - O.z) / D.z;
+            if (tPlane > 1e-4) {
+                vec3 p = O + D * tPlane;
+
+                if (p.x*p.x + p.y*p.y <= r*r && tPlane < tHit) {
+                    tHit = tPlane;
+                    nHit = vec3(0,0,-1);  // outward (downward) normal
                 }
             }
         }
 
-        if (tLocal == 1e30) {
-            t = 1e30;
-            normal = vec3(0.0);
-            return false;
-        }
+        // no hit
+        if (tHit == 1e30) return false;
 
-        // convert local t back to world t
-        t = tLocal * dirScale;
+        // transform t and normal back to world
+        t = tHit * scale;
 
-        // transform normal to world space (use inverse-transpose, w=0)
-        vec3 nWorld = normalize((transpose(invM) * vec4(nLocalHit, 0.0)).xyz);
-        normal = nWorld;
+        vec3 nW = normalize((transpose(invM) * vec4(nHit, 0.0)).xyz);
+        normal = nW;
 
         return true;
     }
-
 
 
     /**
@@ -290,52 +282,47 @@ const fsSource = `#version 300 es
      */
     bool intersectEllipsoid(Ray ray, mat4 worldMatrix, float sphere_radius_x, float sphere_radius_y, float sphere_radius_z, out float t, out vec3 normal) {
         
-        mat4 M = worldMatrix;
-        mat4 invM = inverse(M);
+        // Inverse world matrix
+        mat4 invM = inverse(worldMatrix);
 
-        vec3 localOrigin    = (invM * vec4(ray.origin, 1.0)).xyz;
-        vec3 localDirection = normalize((invM * vec4(ray.direction, 0.0)).xyz);
+        // Transform ray into ellipsoid local space
+        vec3 localOrigin = (invM * vec4(ray.origin, 1.0)).xyz;
+        vec3 localDir    = (invM * vec4(ray.direction, 0.0)).xyz; // do NOT normalize
 
-        // convert ellipsoid to unit sphere
-        vec3 oc = localOrigin;
-        vec3 d  = localDirection;
-        vec3 r  = vec3(sphere_radius_x, sphere_radius_y, sphere_radius_z);
+        // Scale to unit sphere
+        vec3 oc = localOrigin / vec3(sphere_radius_x, sphere_radius_y, sphere_radius_z);
+        vec3 d  = localDir / vec3(sphere_radius_x, sphere_radius_y, sphere_radius_z);
 
-        vec3 oc_scaled = oc / r;
-        vec3 d_scaled  = d  / r;
-
-        float a = dot(d_scaled, d_scaled);
-        float b = 2.0 * dot(oc_scaled, d_scaled);
-        float c = dot(oc_scaled, oc_scaled) - 1.0;
+        // Quadratic coefficients for intersection with unit sphere
+        float a = dot(d, d);
+        float b = 2.0 * dot(oc, d);
+        float c = dot(oc, oc) - 1.0;
 
         float delta = b*b - 4.0*a*c;
 
-        if (delta > 0.0) {
-            float s = sqrt(delta);
-            float t0 = (-b - s) / (2.0 * a);
-            float t1 = (-b + s) / (2.0 * a);
-            t = (t0 > 0.001) ? t0 : t1;
-
-        } else if (abs(delta) < 0.0001) {
-            t = -b / (2.0 * a);
-
-        } else {
+        // No intersection
+        if (delta < 0.0) {
             t = 1e30;
-            normal = vec3(0);
+            normal = vec3(0.0);
             return false;
         }
 
-        if (t <= 0.001) {
-            normal = vec3(0);
+        float sqrtDelta = sqrt(max(delta, 0.0));
+        float t0 = (-b - sqrtDelta) / (2.0 * a);
+        float t1 = (-b + sqrtDelta) / (2.0 * a);
+
+        // pick closest positive t
+        float tLocal = (t0 > 0.001) ? t0 : ((t1 > 0.001) ? t1 : 1e30);
+        if (tLocal == 1e30) {
+            normal = vec3(0.0);
+            t = 1e30;
             return false;
         }
 
-        // compute world space normal
+        // compute hit point in local space
+        vec3 hitLocal = localOrigin + localDir * tLocal;
 
-        // hit point in local ellipsoid space
-        vec3 hitLocal = oc + d * t;
-
-        // gradient of ellipsoid F(x,y,z)=0 => correct local normal
+        // compute local normal
         vec3 nLocal = vec3(
             hitLocal.x / (sphere_radius_x * sphere_radius_x),
             hitLocal.y / (sphere_radius_y * sphere_radius_y),
@@ -343,8 +330,12 @@ const fsSource = `#version 300 es
         );
 
         // transform normal to world space
-        vec3 nWorld = (transpose(invM) * vec4(nLocal, 0.0)).xyz;
-        normal = normalize(nWorld);
+        vec3 nWorld = normalize((transpose(invM) * vec4(nLocal, 0.0)).xyz);
+        normal = nWorld;
+
+        // scale t to world space
+        float dirScale = length((worldMatrix * vec4(localDir, 0.0)).xyz);
+        t = tLocal * dirScale;
 
         return true;
 
@@ -573,7 +564,7 @@ const fsSource = `#version 300 es
 
             // if we hit no object break set the color to the background and break
             if (!objectHit.hit) {
-                color = vec3(0.0, 0.0, 0.0);
+                color = vec3(1.0, 1.0, 1.0);
                 break;
             }
 
