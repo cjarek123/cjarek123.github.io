@@ -41,7 +41,7 @@ const fsSource = `#version 300 es
     };
 
     layout(std140) uniform PrimitiveBlock {
-        Primitive primitives[50];
+        Primitive primitives[60];
         int primitiveCount;
     };
 

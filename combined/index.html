@@ -41,7 +41,9 @@
       </tr>
       <tr>
         <td>Number of Fish Caught:</td>
-        <td id="num-caught" width="30px">0</td>
+        <td width="30px" style="white-space: nowrap;">
+            <span id="num-caught">0</span> / 10
+        </td>
       </tr>
       <tr>
         <td>Total Weight: </td>
@@ -141,12 +143,6 @@
     const standardCameraRight = new Vec3(-1.0,0.0,0.0);
     let newCameraForward = new Vec3(0.0, 100.0, -45.0); // adjust this
 
-    // const cameraOrigin = new Vec3(-30.0, 60.0, 50.0); // adjust this
-    // const standardCameraForward = new Vec3(0.0, 1.0, 0.0);
-    // const standardCameraUp = new Vec3(0.0, 0.0, 1.0);
-    // const standardCameraRight = new Vec3(-1.0, 0.0, 0.0);
-    // let newCameraForward = new Vec3(100.0, -100.0, -45.0); // adjust this
-
     // const cameraOrigin = new Vec3(-30.0, 60.0, 30.0); // adjust this
     // const standardCameraForward = new Vec3(0.0, 1.0, 0.0);
     // const standardCameraUp = new Vec3(0.0, 0.0, 1.0);
@@ -206,7 +202,7 @@
     function initEntities() {
         // fishes in scene
         fishes = new Entities(); // defines the entities/objects of the scene/game
-        for (let i = 0; i < 1; i++) {
+        for (let i = 0; i < 10; i++) {
             let fish = new Fish();
             fishes.addEntity(fish);
         }
@@ -286,8 +282,12 @@
     let largestCatch = 0.0;
     let smallestCatch = 0.0;
 
+    let gameEnded;
+    let gameWon;
+
     document.addEventListener('keydown', e => {
         const radians = Math.PI / 64;
+        if (gameEnded) return; 
         switch (e.code) {
             case 'ArrowLeft': {
                 const mat4 = new Matrix4().rotateZ(radians);
@@ -415,7 +415,7 @@
             ubo = gl.createBuffer();
             gl.bindBuffer(gl.UNIFORM_BUFFER, ubo);
             // define sizes
-            MAX_PRIMITIVES = 50;
+            MAX_PRIMITIVES = 60;
             PRIMITIVE_SIZE = 112; // std140 padded size of one Primitive
             TOTAL_SIZE = MAX_PRIMITIVES * PRIMITIVE_SIZE + 16; // +16 bytes so primitiveCount sits on its own 16-byte aligned block
             // allocate GPU memory for the UBO
@@ -497,8 +497,27 @@
                 let cur_fish = fishes.entities[i]
                 if (cur_fish.state != Fish.CAUGHT) {
                     newFishes.addEntity(cur_fish);
+                } else { // fish caught
+                    numCaught++;
+                    totalWeight += cur_fish.scale_factor;
+                    if (cur_fish.scale_factor > largestCatch){
+                        largestCatch = cur_fish.scale_factor;
+                    }
+                    if (smallestCatch == 0.0 || cur_fish.scale_factor < smallestCatch){
+                        smallestCatch = cur_fish.scale_factor;
+                    }
+                    numCaughtTxt.textContent = numCaught;
+                    totalWeightTxt.textContent = totalWeight.toFixed(2);
+                    largestCatchTxt.textContent = largestCatch.toFixed(2);
+                    smallestCatchTxt.textContent = smallestCatch.toFixed(2);
                 }
             }
+            // check game win
+            if (newFishes.entities.length == 0) {
+                gameEnded = true;
+                gameWon = true;
+            }
+            // update entities with fish caught removed
             fishes = newFishes;
             entities = new Entities();
             entities.addEntities(fishes); // 14 prim
@@ -514,6 +533,7 @@
                     let cur_fish = fishes.entities[i]
                     if (Math.abs(cur_fish.position.x - (fishingRod.bobberX+10)) < 1 && Math.abs(cur_fish.position.y - (fishingRod.bobberY+25)) < 1.5 && Math.abs(cur_fish.position.z - (fishingRod.bobberZ+25.5)) < 1.5) {
                         if (cur_fish.state == Fish.SWIMMING) {
+                            fishingRod.fishHooked = true;
                             cur_fish.state = Fish.HOOKED;
                         }
                     }
@@ -524,7 +544,7 @@
                 for (let i = 0; i < fishes.entities.length; i++) {
                     let cur_fish = fishes.entities[i]
                     if (cur_fish.state == Fish.HOOKED) {
-                        cur_fish.position.y = fishingRod.bobberY+25-1.5;
+                        cur_fish.position.y = fishingRod.bobberY+25-(cur_fish.scale_factor*0.3);
                     }
                 }
             }
@@ -533,32 +553,12 @@
                 for (let i = 0; i < fishes.entities.length; i++) {
                     let cur_fish = fishes.entities[i]
                     if (cur_fish.state == Fish.HOOKED) {
+                        fishingRod.fishHooked = false;
                         cur_fish.state = Fish.CAUGHT;
                     }
                 }
             }
-
-            // if(fishingRod.state == FishingRod.IDLE && fishingRod.hookedFishWeight != 0.0){
-            //     console.log("fish captures and reeled in")
-            //     numCaught++;
-            //     totalWeight += fishingRod.hookedFishWeight;
-            //     if(fishingRod.hookedFishWeight > largestCatch){
-            //         largestCatch = rod.hookedFishWeight;
-            //     }
-            //     if(smallestCatch == 0.0 || fishingRod.hookedFishWeight < smallestCatch){
-            //         smallestCatch = fishingRod.hookedFishWeight;
-            //     }
-            //     numCaughtTxt.textContent = numCaught;
-            //     totalWeightTxt.textContent = totalWeight.toFixed(2);
-            //     largestCatchTxt.textContent = largestCatch.toFixed(2);
-            //     smallestCatchTxt.textContent = smallestCatch.toFixed(2);
-            //     console.log("You caught a fish weighing " + fishingRod.hookedFishWeight.toFixed(2) + " units!");
-            //     fishingRod.hookedFishWeight = 0.0;
-            // }
         }
-
-        // // for debugging
-        // bufferEntities(gl, program, entities)
 
         let startTime = Date.now();
         const targetFPS = 30;
@@ -572,13 +572,13 @@
                 lastFrameTime = now;
                 const deltaTime = (Date.now() - startTime) / 1000.0;
 
-                // update day night cycle
-                updateLightLocation(deltaTime);
-
-                // update the animations of the entities
-                entities.animate(deltaTime);
-
-                fishingRodGameLogic();
+                if (!gameEnded) {
+                    // update day night cycle
+                    updateLightLocation(deltaTime);
+                    // update the animations of the entities
+                    entities.animate(deltaTime);
+                    fishingRodGameLogic();
+                }
 
                 gl.viewport(0, 0, canvas.width, canvas.height);
                 gl.clearColor(0, 0, 0, 1);

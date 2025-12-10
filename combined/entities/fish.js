@@ -16,7 +16,7 @@ class Fish extends Entity {
         this.color = Fish.hsv2rgb(Math.random() * 360, 1.0, 1.0);
         this.scale_factor = Math.sqrt(Math.random()) * (9.0 - 5.0) + 1.0;
         this.direction = Math.random() < 0.5 ? -1 : 1;
-        this.position = new Vec3(10.0, 70, 2.0); 
+        this.position = new Vec3(Math.random() * 360 - 180, Math.random() * (115 - 30) + 30, 2.0); 
 
         // primitives
         let fishBody = new Ellipsoid(this.color, new Vec3(1.0, 1.0, 1.0), MATERIALS.DIFFUSE, .0, .0);
@@ -75,8 +75,8 @@ class Fish extends Entity {
                     this.fishBodyNode.primitive.color = this.color;
                     this.scale_factor = Math.sqrt(Math.random()) * (9.0 - 5.0) + 1.0;
                     this.direction = Math.random() < 0.5 ? -1 : 1;
-                    this.position.x = 10;
-                    this.position.y =  70;
+                    this.position.x = -this.direction * 155;
+                    this.position.y =  Math.random() * (115 - 30) + 30;
                 }
 
                 this.fishBodyNode.localMatrix.translate(this.position.x, this.position.y, this.position.z);
