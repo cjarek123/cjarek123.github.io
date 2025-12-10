@@ -1,28 +1,6 @@
-//Fishing Rod
-// let rodBase = new Cylinder(0.2, 3.0, MATERIALS.DIFFUSE, 0.0, 0.0);
-// let rodArm = new Cylinder(0.1, 10.0, MATERIALS.DIFFUSE, 0.0, 0.0);
-
-// let = coreCylinder = generateCylinder(0.5, 1.0);
-// let = coreSphere = generateSphere(0.5, 16);
-
-// let = handleBase = generateCylinder(0.1, 0.5);
-// let = handleArm = generateCylinder(0.1, 0.5);
-// let = handleGrip = generateCylinder(0.1, 0.5);
-
-// let = ring1 = generateTorus(0.2, 0.03);
-// let = ring2 = generateTorus(0.2, 0.03);
-// let = ring3 = generateTorus(0.2, 0.03);
-// let = ring4 = generateTorus(0.2, 0.03);
-// let = ring5 = generateTorus(0.2, 0.03);
-
-// let = stringA = generateCylinder(0.01, 2.0);
-// let = stringB = generateCylinder(0.01, 8.0);
-// let = stringC = generateCylinder(0.01, 1.0);
-
-// let = bobberSphere = generateSphere(0.2);
-// let = bobberHead = generateCylinder(0.075, 0.05);
-// let = bobberRing = generateTorus(0.2, 0.02);
-
+/**
+ * Fishing rod entity
+ */
 class FishingRod extends Entity {
 
     static IDLE = 0;
@@ -50,6 +28,7 @@ class FishingRod extends Entity {
         this.launchSpdZ = -10.0;
         this.g = -10.0;
         this.startTime = 0.0;
+        this.center = center;
 
         // primitives
         let rodBase = new Cylinder(color, scale_factor*0.2, scale_factor*3.0, MATERIALS.DIFFUSE, 0.0, 0.0);
@@ -110,9 +89,6 @@ class FishingRod extends Entity {
         this.bobberSphereNode.setParent(this.bobberHeadNode);
         this.bobberRingNode.setParent(this.bobberSphereNode);
 
-        // rod base
-        this.rodBaseNode.localMatrix.translate(center.x, center.y, center.z+10);
-        this.rodBaseNode.localMatrix.rotateX(Math.PI/16);
         // rod arm
         this.rodArmNode.localMatrix.translate(0.0, 0.0, scale_factor*3.5);
         // rings
@@ -125,9 +101,6 @@ class FishingRod extends Entity {
         this.coreCylinderNode.localMatrix.translate(0.0, scale_factor*0.7, scale_factor*0.75);
         // core sphere
         this.coreSphereNode.localMatrix.translate(0.0, 0.0, 1.0);
-        // handle base
-        this.handleBaseNode.localMatrix.rotateY(Math.PI/2);
-        this.handleBaseNode.localMatrix.translate(-1.5, 0.0, 0.5);
         // handle arm
         this.handleArmNode.localMatrix.rotateY(Math.PI/2);
         this.handleArmNode.localMatrix.translate(0.4, 0.0, 0.5);
@@ -139,12 +112,6 @@ class FishingRod extends Entity {
         this.stringANode.localMatrix.translate(0.0, -0.1, scale_factor*1.4);
         this.stringBNode.localMatrix.rotateX(Math.PI/15);
         this.stringBNode.localMatrix.translate(0.0, 1.0, scale_factor*3.3);
-        //SCALE Y COMPONENT OF STRING C TO MODIFY LENGTH
-        let strLen = Math.sqrt(this.bobberX*this.bobberX + this.bobberY*this.bobberY + this.bobberZ*this.bobberZ);
-        let strRotX = Math.atan2(this.bobberZ, this.bobberY);
-        this.stringCNode.localMatrix.scale(1.0, strLen, 1.0);
-        this.stringCNode.localMatrix.rotateX(strRotX);
-        this.stringCNode.localMatrix.translate(0, 8.0, 0);
         // bobber
         this.bobberHeadNode.localMatrix.translate(scale_factor*this.bobberX, scale_factor*(0.2+this.bobberZ), scale_factor*(2.6+this.bobberY));
         this.bobberSphereNode.localMatrix.translate(0.0, 0.0, -0.4);
@@ -180,50 +147,77 @@ class FishingRod extends Entity {
     }
 
     animate(deltaTime) {
-        // switch(this.state){
-        //     case FishingRod.IDLE:
-        //         console.log("IDLE");
-        //         this.bobberX = 0.0;
-        //         this.bobberY = 0.0;
-        //         this.bobberZ = 0.0;
-        //         this.charge = 0.0;
-        //         break;
+
+        switch(this.state){
+            case FishingRod.IDLE:
+                console.log("IDLE");
+                this.bobberX = 0.0;
+                this.bobberY = 0.0;
+                this.bobberZ = 0.0;
+                this.charge = 0.0;
+                break;
                 
-        //     case FishingRod.CHARGING:
-        //         console.log("CHARGING");
-        //         this.bobberX = 0.0;
-        //         this.bobberY = 0.0;
-        //         this.bobberZ = 0.0;
-        //         this.startTime = Date.now();
-        //         break;
+            case FishingRod.CHARGING:
+                console.log("CHARGING");
+                this.bobberX = 0.0;
+                this.bobberY = 0.0;
+                this.bobberZ = 0.0;
+                this.startTime = Date.now();
+                break;
 
-        //     case FishingRod.RELEASING:
-        //         console.log("RELEASING");
-        //         let dt = (Date.now() - this.startTime)*0.001;
+            case FishingRod.RELEASING:
+                console.log("RELEASING");
+                let dt = (Date.now() - this.startTime)*0.001;
 
-        //         //this.bobberX = this.charge*this.launchSpdX*dt;
-        //         this.bobberY = this.charge*this.launchSpdY*dt + 0.5*this.g*dt*dt;
-        //         this.bobberZ = this.charge*this.launchSpdZ*dt;
+                //this.bobberX = this.charge*this.launchSpdX*dt;
+                this.bobberY = this.charge*this.launchSpdY*dt + 0.5*this.g*dt*dt;
+                this.bobberZ = this.charge*this.launchSpdZ*dt;
 
-        //         if(this.bobberY <= -13.0){
-        //         this.bobberY = -13.0;
-        //         this.state = fishingRod.FISHING;
-        //         }
-        //         break;
+                if(this.bobberY <= -13.0){
+                this.bobberY = -13.0;
+                this.state = fishingRod.FISHING;
+                }
+                break;
 
-        //     case FishingRod.FISHING:
-        //         console.log("FISHING");
-        //         this.bobberY = -13.0+Math.sin(Date.now()*0.005)*0.1;
-        //         break;
+            case FishingRod.FISHING:
+                console.log("FISHING");
+                this.bobberY = -13.0+Math.sin(Date.now()*0.005)*0.1;
+                break;
 
-        //     case FishingRod.REELING:
-        //         console.log("REELING");
-        //         this.bobberZ += fishingRod.REELSPEED;
-        //         if(this.bobberZ >= -1.5){
-        //             this.bobberY = 0.0;
-        //             this.state = fishingRod.IDLE;
-        //         }
-        //         break;
-        // }
+            case FishingRod.REELING:
+                console.log("REELING");
+                this.bobberZ += fishingRod.REELSPEED;
+                if(this.bobberZ >= -1.5){
+                    this.bobberY = 0.0;
+                    this.state = fishingRod.IDLE;
+                }
+                break;
+        }
+
+        // rod base
+        this.rodBaseNode.localMatrix = new Matrix4();
+        if(this.state == FishingRod.CHARGING){
+            console.log("HERE")
+            this.rodBaseNode.localMatrix.rotateX(this.charge*(-Math.PI/2));
+        }
+        this.rodBaseNode.localMatrix.rotateX(Math.PI/16);
+        this.rodBaseNode.localMatrix.translate(this.center.x, this.center.y, this.center.z);
+        this.rodBaseNode.updateWorldMatrix();
+
+        // handle base
+        this.handleBaseNode.localMatrix = new Matrix4();
+        this.handleBaseNode.localMatrix.rotateY(Math.PI/2);
+        if(this.state == FishingRod.REELING){
+            this.handleBaseNode.localMatrix.rotateX(-deltaTime*0.01/Math.PI);
+        }
+        this.handleBaseNode.localMatrix.translate(-1.5, 0.0, 0.5);
+
+        // string C (SCALE Y COMPONENT OF STRING C TO MODIFY LENGTH)
+        let strLen = Math.sqrt(this.bobberX*this.bobberX + this.bobberY*this.bobberY + this.bobberZ*this.bobberZ);
+        let strRotX = Math.atan2(this.bobberZ, this.bobberY);
+        this.stringCNode.localMatrix = new Matrix4();
+        this.stringCNode.localMatrix.scale(1.0, strLen, 1.0);
+        this.stringCNode.localMatrix.rotateX(strRotX);
+        this.stringCNode.localMatrix.translate(0, 8.0, 0);
     }
 }
