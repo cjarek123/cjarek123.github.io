@@ -39,7 +39,7 @@ const fsSource = `#version 300 es
         float field3;
         int pad1;//padding
     };
-
+    // Uniform Block Index
     layout(std140) uniform PrimitiveBlock {
         Primitive primitives[70];
         int primitiveCount;
