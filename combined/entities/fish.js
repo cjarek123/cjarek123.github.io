@@ -20,27 +20,20 @@ class Fish extends Entity {
 
         // primitives
         let fishBody = new Ellipsoid(this.color, new Vec3(1.0, 1.0, 1.0), MATERIALS.DIFFUSE, .0, .0);
-        // let fishTail = new Cone(color, scale_factor*0.25, scale_factor*0.5, MATERIALS.DIFFUSE, .0, .0);
+        let fishTail = new Cone(this.color, 1.0, 1.0, MATERIALS.DIFFUSE, .0, .0);
 
         // nodes
         this.fishBodyNode = new Node(fishBody);
+        this.fishTailNode = new Node(fishTail);
+
+        // attach tail to body
+        this.fishTailNode.setParent(this.fishBodyNode);
+
         this.fishBodyNode.updateWorldMatrix();
-        // this.fishTailNode = new Node(fishTail);
-
-        // // attach tail to body
-        // this.fishTailNode.setParent(this.fishBodyNode);
-
-        // translate fish body
-        // this.fishBodyNode.localMatrix.scale(scale_factor*1.0, scale_factor*0.2, scale_factor*0.5);
-        // this.fishBodyNode.localMatrix.translate(center.x, center.y, center.z);
-
-        // // translate fish tail
-        // this.fishTailNode.localMatrix.scale(3.0, 0.8, 1.5);
-        // this.fishTailNode.localMatrix.rotateY(Math.PI/2);
-        // this.fishTailNode.localMatrix.translate(2.0 * scale_factor, 0.0, 0.0);
 
         this.nodes = [
-            this.fishBodyNode
+            this.fishBodyNode,
+            this.fishTailNode
         ]
 
     }
@@ -67,13 +60,23 @@ class Fish extends Entity {
             case Fish.SWIMMING:
 
                 this.fishBodyNode.localMatrix = new Matrix4();
+                this.fishTailNode.localMatrix = new Matrix4();
                 // scale
                 this.fishBodyNode.localMatrix.scale(this.scale_factor*1.5, this.scale_factor*0.2, this.scale_factor*0.5);
+                this.fishTailNode.localMatrix.scale(this.scale_factor*0.4, this.scale_factor*0.2, this.scale_factor*0.1);
+                this.fishTailNode.localMatrix.rotateY(- this.direction * Math.PI/2);
+
+                // attach tail relative to body length
+                const bodyLength = Math.sqrt(this.scale_factor) * 0.6;
+                const tailOffset = -bodyLength / 2 - 0.2 * (5- Math.sqrt(this.scale_factor)); // slightly behind body
+                this.fishTailNode.localMatrix.translate(this.direction * tailOffset, 0.0, 0.0);
+
                 // swim forward
                 this.position.x = this.position.x + (this.scale_factor*this.direction*0.5);
                 if(Math.abs(this.position.x) >= 160.0){ // respawn fish if reaches end of river
                     this.color = Fish.hsv2rgb(Math.random() * 360, 1.0, 1.0);
                     this.fishBodyNode.primitive.color = this.color;
+                    this.fishTailNode.primitive.color = this.color;
                     this.scale_factor = Math.sqrt(Math.random()) * (9.0 - 5.0) + 1.0;
                     this.direction = Math.random() < 0.5 ? -1 : 1;
                     this.position.x = -this.direction * 155;
@@ -81,6 +84,7 @@ class Fish extends Entity {
                 }
 
                 this.fishBodyNode.localMatrix.translate(this.position.x, this.position.y, this.position.z);
+
                 this.fishBodyNode.updateWorldMatrix();
                 break;
 
@@ -89,6 +93,14 @@ class Fish extends Entity {
                 this.fishBodyNode.localMatrix = new Matrix4();
                 this.fishBodyNode.localMatrix.scale(this.scale_factor*1.5, this.scale_factor*0.2, this.scale_factor*0.5);
                 this.fishBodyNode.localMatrix.translate(this.position.x, this.position.y, this.position.z+(Math.sin(10*deltaTime)*0.5));
+
+                this.fishTailNode.localMatrix = new Matrix4();
+                this.fishTailNode.localMatrix.scale(this.scale_factor*0.4, this.scale_factor*0.2, this.scale_factor*0.1);
+                this.fishTailNode.localMatrix.rotateY(- this.direction * Math.PI/2);
+                const bodyLength2 = Math.sqrt(this.scale_factor) * 0.6;
+                const tailOffset2 = -bodyLength2 / 2 - 0.2 * (5- Math.sqrt(this.scale_factor)); // slightly behind body
+                this.fishTailNode.localMatrix.translate(this.direction * tailOffset2, 0.0, 0.0);
+                
                 this.fishBodyNode.updateWorldMatrix();
                 break;
 

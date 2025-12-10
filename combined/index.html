@@ -140,7 +140,7 @@
     // lighting variables
     const maxBounces = 6;
     const orbitHeight = 200.0;
-    const dayInSeconds = 60.0;
+    const dayInSeconds = 30.0;
     let lightCenter = new Vec3(0.0, 110.0, 200.0);
     let lightStrength = 3.5;
     let ambientStrength = 0.5;
@@ -201,19 +201,25 @@
         grassBlocks.addEntity(grassBlock2);
         // pine trees
         pineTrees = new Entities();
-        let pineTree1 = new PineTree(new Vec3(0.18, 0.12, 0.05), new Vec3(0.0, 0.10, 0.0), new Vec3(50.0, 160 + Math.random() * 30, 7.0), 1.0);
-        let pineTree2 = new PineTree(new Vec3(0.18, 0.12, 0.05), new Vec3(0.0, 0.10, 0.0), new Vec3(-50.0, 160 + Math.random() * 30, 7.0), 1.0);
+        let pineTree1 = new PineTree(new Vec3(0.18, 0.12, 0.05), new Vec3(0.0, 0.10, 0.0), new Vec3(50.0, 150 + Math.random() * 50, 7.0), 1.0);
+        let pineTree2 = new PineTree(new Vec3(0.18, 0.12, 0.05), new Vec3(0.0, 0.10, 0.0), new Vec3(-50.0, 150 + Math.random() * 50, 7.0), 1.0);
+        let pineTree3 = new PineTree(new Vec3(0.18, 0.12, 0.05), new Vec3(0.0, 0.10, 0.0), new Vec3(100.0, 150 + Math.random() * 50, 7.0), 1.0);
+        let pineTree4 = new PineTree(new Vec3(0.18, 0.12, 0.05), new Vec3(0.0, 0.10, 0.0), new Vec3(-100.0, 150 + Math.random() * 50, 7.0), 1.0);
+        let pineTree5 = new PineTree(new Vec3(0.18, 0.12, 0.05), new Vec3(0.0, 0.10, 0.0), new Vec3(0.0, 150 + Math.random() * 50, 7.0), 1.0);
         pineTrees.addEntity(pineTree1);
         pineTrees.addEntity(pineTree2);
+        pineTrees.addEntity(pineTree3);
+        pineTrees.addEntity(pineTree4);
+        pineTrees.addEntity(pineTree5);
         // merge entities
         let local_entities = new Entities();
-        local_entities.addEntities(fishes); // 14 prim
-        local_entities.addEntities(docks); // 2 prim
+        local_entities.addEntities(fishes); // 10 prim
+        local_entities.addEntities(docks); // 3 prim
         local_entities.addEntities(rivers); // 2 prim
         local_entities.addEntities(grassBlocks); // 2 prim
-        local_entities.addEntities(pineTrees); // 12 prim
+        local_entities.addEntities(pineTrees); // 20 prim
         local_entities.addEntities(rods); // 18 prim
-        return local_entities; // max is 40
+        return local_entities; // max is 70 (55)
     }
     
     // entities
@@ -392,7 +398,7 @@
             ubo = gl.createBuffer();
             gl.bindBuffer(gl.UNIFORM_BUFFER, ubo);
             // define sizes
-            MAX_PRIMITIVES = 60;
+            MAX_PRIMITIVES = 70;
             PRIMITIVE_SIZE = 112; // std140 padded size of one Primitive
             TOTAL_SIZE = MAX_PRIMITIVES * PRIMITIVE_SIZE + 16; // +16 bytes so primitiveCount sits on its own 16-byte aligned block
             // allocate GPU memory for the UBO

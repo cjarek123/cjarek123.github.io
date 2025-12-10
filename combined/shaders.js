@@ -41,7 +41,7 @@ const fsSource = `#version 300 es
     };
 
     layout(std140) uniform PrimitiveBlock {
-        Primitive primitives[60];
+        Primitive primitives[70];
         int primitiveCount;
     };
 
@@ -109,7 +109,7 @@ const fsSource = `#version 300 es
     }
 
     /**
-     * 0 - Cone Intersection Check
+     * 0 - Cone Intersection Check (robust version)
      */
     bool intersectCone(Ray ray, mat4 worldMatrix, float r, float h, out float t, out vec3 normal) {
         
@@ -141,7 +141,7 @@ const fsSource = `#version 300 es
         float c = ox*ox + oy*oy - k2 * oz*oz;
 
         float tHit = 1e30;
-        vec3  nHit = vec3(0);
+        vec3  nHit = vec3(0.0);
 
         // body intersection
         float disc = b*b - 4.0*a*c;
@@ -180,7 +180,6 @@ const fsSource = `#version 300 es
             float tPlane = (0.0 - O.z) / D.z;
             if (tPlane > 1e-4) {
                 vec3 p = O + D * tPlane;
-
                 if (p.x*p.x + p.y*p.y <= r*r && tPlane < tHit) {
                     tHit = tPlane;
                     nHit = vec3(0,0,-1);  // outward (downward) normal
@@ -191,9 +190,14 @@ const fsSource = `#version 300 es
         // no hit
         if (tHit == 1e30) return false;
 
-        // transform t and normal back to world
-        t = tHit * scale;
+        // Compute hit point in world space
+        vec3 hitLocal = O + D * tHit;
+        vec3 hitWorld = (worldMatrix * vec4(hitLocal, 1.0)).xyz;
 
+        // Set t as true world-space distance
+        t = length(hitWorld - ray.origin);
+
+        // Transform normal to world space correctly
         vec3 nW = normalize((transpose(invM) * vec4(nHit, 0.0)).xyz);
         normal = nW;
 
