@@ -135,16 +135,16 @@
     }
 
     // camera variables
-    // const cameraOrigin = new Vec3(0.0, -45.0, 50.0); // adjust this
-    // const standardCameraForward = new Vec3(0.0, 1.0, 0.0);
-    // const standardCameraUp = new Vec3(0.0, 0.0, 1.0);
-    // const standardCameraRight = new Vec3(-1.0,0.0,0.0);
-    // let newCameraForward = new Vec3(0.0, 100.0, -45.0); // adjust this
-    const cameraOrigin = new Vec3(30.0, 60.0, 50.0); // adjust this
+    const cameraOrigin = new Vec3(0.0, -45.0, 50.0); // adjust this
     const standardCameraForward = new Vec3(0.0, 1.0, 0.0);
     const standardCameraUp = new Vec3(0.0, 0.0, 1.0);
     const standardCameraRight = new Vec3(-1.0,0.0,0.0);
-    let newCameraForward = new Vec3(-100.0, -100.0, -45.0); // adjust this
+    let newCameraForward = new Vec3(0.0, 100.0, -45.0); // adjust this
+    // const cameraOrigin = new Vec3(-30.0, 60.0, 50.0); // adjust this
+    // const standardCameraForward = new Vec3(0.0, 1.0, 0.0);
+    // const standardCameraUp = new Vec3(0.0, 0.0, 1.0);
+    // const standardCameraRight = new Vec3(-1.0, 0.0, 0.0);
+    // let newCameraForward = new Vec3(100.0, -100.0, -45.0); // adjust this
     let cameraBasis = updateCameraBasisKeepUp(newCameraForward)
     let cameraForward = cameraBasis.forward;
     let cameraUp = cameraBasis.up;
@@ -230,7 +230,7 @@
         }
         // fishing rod
         const rods = new Entities();
-        fishingRod = new FishingRod(new Vec3(1.0, 1.0, 1.0), new Vec3(0.0, 10.0, 25.0), 2.0);
+        fishingRod = new FishingRod(new Vec3(1.0, 0.0, 1.0), new Vec3(5.0, -20.0, 10.0), 2.0);
         rods.addEntity(fishingRod);
         // dock
         const docks = new Entities();

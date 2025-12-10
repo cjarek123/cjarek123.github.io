@@ -64,12 +64,12 @@ class FishingRod extends Entity {
         let ring3 = new Torus(color, scale_factor*0.2, scale_factor*0.03, MATERIALS.DIFFUSE, 0.0, 0.0);
         let ring4 = new Torus(color, scale_factor*0.2, scale_factor*0.03, MATERIALS.DIFFUSE, 0.0, 0.0);
         let ring5 = new Torus(color, scale_factor*0.2, scale_factor*0.03, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let stringA = new Cylinder(color, scale_factor*0.01, scale_factor*2.0, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let stringB = new Cylinder(color, scale_factor*0.01, scale_factor*8.0, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let stringC = new Cylinder(color, scale_factor*0.01, scale_factor*1.0, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let stringA = new Cylinder(color, scale_factor*0.02, scale_factor*2.0, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let stringB = new Cylinder(color, scale_factor*0.02, scale_factor*5.0, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let stringC = new Cylinder(color, scale_factor*0.02, scale_factor*1.0, MATERIALS.DIFFUSE, 0.0, 0.0);
         let bobberSphere = new Ellipsoid(color, new Vec3(scale_factor*0.2, scale_factor*0.2, scale_factor*0.2), MATERIALS.DIFFUSE, 0.0, 0.0);
         let bobberHead = new Cylinder(color, scale_factor*0.075, scale_factor*0.05, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let bobberRing = new Torus(color, scale_factor*0.2, scale_factor*0.02, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let bobberRing = new Torus(color, scale_factor*0.25, scale_factor*0.03, MATERIALS.DIFFUSE, 0.0, 0.0);
 
         // nodes
         this.rodBaseNode = new Node(rodBase);
@@ -111,44 +111,70 @@ class FishingRod extends Entity {
         this.bobberRingNode.setParent(this.bobberSphereNode);
 
         // rod base
-        this.rodBaseNode.localMatrix.translate(center.x, center.y, center.z);
+        this.rodBaseNode.localMatrix.translate(center.x, center.y, center.z+10);
         this.rodBaseNode.localMatrix.rotateX(Math.PI/16);
         // rod arm
         this.rodArmNode.localMatrix.translate(0.0, 0.0, scale_factor*3.5);
         // rings
-        this.ring1Node.localMatrix.translate(0.0, scale_factor*0.25, scale_factor*1.0);
-        this.ring2Node.localMatrix.translate(0.0, scale_factor*0.25, scale_factor*2.0);
-        this.ring3Node.localMatrix.translate(0.0, scale_factor*0.25, scale_factor*3.0);
-        this.ring4Node.localMatrix.translate(0.0, scale_factor*0.25, scale_factor*4.0);
+        this.ring1Node.localMatrix.translate(0.0, scale_factor*0.25, scale_factor*0.2);
+        this.ring2Node.localMatrix.translate(0.0, scale_factor*0.25, scale_factor*1.4);
+        this.ring3Node.localMatrix.translate(0.0, scale_factor*0.25, scale_factor*2.6);
+        this.ring4Node.localMatrix.translate(0.0, scale_factor*0.25, scale_factor*3.8);
         this.ring5Node.localMatrix.translate(0.0, scale_factor*0.25, scale_factor*5.0);
+        // core cylinder
+        this.coreCylinderNode.localMatrix.translate(0.0, scale_factor*0.7, scale_factor*0.75);
+        // core sphere
+        this.coreSphereNode.localMatrix.translate(0.0, 0.0, 1.0);
+        // handle base
+        this.handleBaseNode.localMatrix.rotateY(Math.PI/2);
+        this.handleBaseNode.localMatrix.translate(-1.5, 0.0, 0.5);
+        // handle arm
+        this.handleArmNode.localMatrix.rotateY(Math.PI/2);
+        this.handleArmNode.localMatrix.translate(0.4, 0.0, 0.5);
+        // handle grip
+        this.handleGripNode.localMatrix.rotateY(Math.PI/2);
+        this.handleGripNode.localMatrix.translate(0.5, 0.0, -0.4);
         // strings
-        // this.stringANode.localMatrix.rotateX(Math.PI/15);
-        // this.stringANode.localMatrix.translate(0.0, 0.0, scale_factor*0.5);
-        // this.stringBNode.localMatrix.rotateX(-Math.PI/15);
-        // this.stringBNode.localMatrix.translate(0.0, 0.0, scale_factor*4.0);
+        this.stringANode.localMatrix.rotateX(-Math.PI/15);
+        this.stringANode.localMatrix.translate(0.0, -0.1, scale_factor*1.4);
+        this.stringBNode.localMatrix.rotateX(Math.PI/15);
+        this.stringBNode.localMatrix.translate(0.0, 1.0, scale_factor*3.3);
+        //SCALE Y COMPONENT OF STRING C TO MODIFY LENGTH
+        let strLen = Math.sqrt(this.bobberX*this.bobberX + this.bobberY*this.bobberY + this.bobberZ*this.bobberZ);
+        let strRotX = Math.atan2(this.bobberZ, this.bobberY);
+        this.stringCNode.localMatrix.scale(1.0, strLen, 1.0);
+        this.stringCNode.localMatrix.rotateX(strRotX);
+        this.stringCNode.localMatrix.translate(0, 8.0, 0);
+        // bobber
+        this.bobberHeadNode.localMatrix.translate(scale_factor*this.bobberX, scale_factor*(0.2+this.bobberZ), scale_factor*(2.6+this.bobberY));
+        this.bobberSphereNode.localMatrix.translate(0.0, 0.0, -0.4);
 
         // update nodes world matrices (need to only call on root nodes)
         this.rodBaseNode.updateWorldMatrix();
 
         this.nodes = [
+            // rod
             this.rodBaseNode,
             this.rodArmNode,
-            // this.coreCylinderNode,
-            // this.coreSphereNode,
-            // this.handleBaseNode,
-            // this.handleArmNode,
-            // this.handleGripNode,
+            // core
+            this.coreCylinderNode,
+            this.coreSphereNode,
+            // handle
+            this.handleBaseNode,
+            this.handleArmNode,
+            this.handleGripNode,
+            // rings
             this.ring1Node,
             this.ring2Node,
             this.ring3Node,
             this.ring4Node,
             this.ring5Node,
-            // this.stringANode,
-            // this.stringBNode,
-            // this.stringCNode,
-            // this.bobberSphereNode,
-            // this.bobberHeadNode,
-            // this.bobberRingNode
+            this.stringANode,
+            this.stringBNode,
+            this.stringCNode,
+            this.bobberHeadNode,
+            this.bobberSphereNode,
+            this.bobberRingNode
         ]
 
     }
