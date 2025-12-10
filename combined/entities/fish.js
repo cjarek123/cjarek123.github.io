@@ -16,7 +16,7 @@ class Fish extends Entity {
         this.color = Fish.hsv2rgb(Math.random() * 360, 1.0, 1.0);
         this.scale_factor = Math.sqrt(Math.random()) * (9.0 - 5.0) + 1.0;
         this.direction = Math.random() < 0.5 ? -1 : 1;
-        this.position = new Vec3(Math.random() * 360 - 180, Math.random() * (115 - 30) + 30, 2.0); 
+        this.position = new Vec3(Math.random() * 360 - 180, Math.random() * (115 - 30) + 30, 1.5); 
 
         // primitives
         let fishBody = new Ellipsoid(this.color, new Vec3(1.0, 1.0, 1.0), MATERIALS.DIFFUSE, .0, .0);
@@ -63,8 +63,9 @@ class Fish extends Entity {
                 this.fishTailNode.localMatrix = new Matrix4();
                 // scale
                 this.fishBodyNode.localMatrix.scale(this.scale_factor*1.5, this.scale_factor*0.2, this.scale_factor*0.5);
-                this.fishTailNode.localMatrix.scale(this.scale_factor*0.4, this.scale_factor*0.2, this.scale_factor*0.1);
+                this.fishTailNode.localMatrix.scale(this.scale_factor*0.4, this.scale_factor*0.1, this.scale_factor*0.1);
                 this.fishTailNode.localMatrix.rotateY(- this.direction * Math.PI/2);
+                this.fishTailNode.localMatrix.rotateZ((Math.PI/6)*(Math.sin(8*deltaTime)*0.5));
 
                 // attach tail relative to body length
                 const bodyLength = Math.sqrt(this.scale_factor) * 0.6;
@@ -97,6 +98,7 @@ class Fish extends Entity {
                 this.fishTailNode.localMatrix = new Matrix4();
                 this.fishTailNode.localMatrix.scale(this.scale_factor*0.4, this.scale_factor*0.2, this.scale_factor*0.1);
                 this.fishTailNode.localMatrix.rotateY(- this.direction * Math.PI/2);
+                this.fishTailNode.localMatrix.rotateZ((Math.PI/6)*(Math.sin(8*deltaTime)*0.5));
                 const bodyLength2 = Math.sqrt(this.scale_factor) * 0.6;
                 const tailOffset2 = -bodyLength2 / 2 - 0.2 * (5- Math.sqrt(this.scale_factor)); // slightly behind body
                 this.fishTailNode.localMatrix.translate(this.direction * tailOffset2, 0.0, 0.0);

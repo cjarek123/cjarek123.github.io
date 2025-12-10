@@ -22,6 +22,44 @@
         canvas {
         border: 1px solid #444;
         }
+
+        .switch-container {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #river-material {
+            width: 40px;
+            height: 20px;
+            position: relative;
+            -webkit-appearance: none;
+            background: #ccc;
+            outline: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        #river-material:checked {
+            background: #4CAF50;
+        }
+
+        #river-material::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            top: 1px;
+            left: 1px;
+            background: white;
+            transition: 0.3s;
+        }
+
+        #river-material:checked::after {
+            transform: translateX(20px);
+        }
     </style>
 </head>
 
@@ -68,6 +106,12 @@
         </tr>
         </table>
 
+        <label for="river-material">River Material:</label>
+        <div class="switch-container">
+            <input type="checkbox" id="river-material">
+            <span id="material-label">DIFFUSE</span>
+        </div>
+
     </div>
     </div>
   </div>
@@ -112,17 +156,11 @@
     }
 
     // camera variables
-    const cameraOrigin = new Vec3(0.0, -45.0, 50.0); // adjust this
+    const cameraOrigin = new Vec3(0.0, -45.0, 40.0); // adjust this
     const standardCameraForward = new Vec3(0.0, 1.0, 0.0);
     const standardCameraUp = new Vec3(0.0, 0.0, 1.0);
     const standardCameraRight = new Vec3(-1.0,0.0,0.0);
-    let newCameraForward = new Vec3(0.0, 100.0, -45.0); // adjust this
-
-    // const cameraOrigin = new Vec3(-30.0, 60.0, 30.0); // adjust this
-    // const standardCameraForward = new Vec3(0.0, 1.0, 0.0);
-    // const standardCameraUp = new Vec3(0.0, 0.0, 1.0);
-    // const standardCameraRight = new Vec3(-1.0, 0.0, 0.0);
-    // let newCameraForward = new Vec3(100.0, -100.0, -45.0); // adjust this
+    let newCameraForward = new Vec3(0.0, 100.0, -40.0); // adjust this               
 
     let cameraBasis = updateCameraBasisKeepUp(newCameraForward)
     let cameraForward = cameraBasis.forward;
@@ -138,7 +176,7 @@
      */
 
     // lighting variables
-    const maxBounces = 6;
+    const maxBounces = 4;
     const orbitHeight = 200.0;
     const dayInSeconds = 30.0;
     let lightCenter = new Vec3(0.0, 110.0, 200.0);
@@ -169,7 +207,7 @@
     /**
      * Entity instantiation
      */
-    let fishingRod, fishes, rods, docks, rivers, grassBlocks, pineTrees;
+    let fishingRod, river, fishes, rods, docks, rivers, grassBlocks, pineTrees;
 
     /**
      * Initialize the entities of the game
@@ -191,7 +229,7 @@
         docks.addEntity(dock);
         // river
         rivers = new Entities();
-        let river = new River(new Vec3(0.1, 0.75, 0.95), new Vec3(1.0, 1.0, 1.0), new Vec3(0.0, 70.0, 0.0), 1.0);
+        river = new River(new Vec3(0.1, 0.75, 0.95), new Vec3(1.0, 1.0, 1.0), new Vec3(0.0, 70.0, 0.0), 1.0);
         rivers.addEntity(river);
         // grass
         grassBlocks = new Entities();
@@ -267,6 +305,14 @@
     let gameEnded;
     let gameWon;
     let deltaTime;
+
+    const checkbox = document.getElementById('river-material');
+    const label = document.getElementById('material-label');
+
+    checkbox.addEventListener('change', () => {
+        label.textContent = checkbox.checked ? 'REFRACTIVE' : 'DIFFUSE';
+        river.riverNode.primitive.material = checkbox.checked ? MATERIALS.REFRACTIVE : MATERIALS.DIFFUSE;
+    });
 
     document.addEventListener('keydown', e => {
         const radians = Math.PI / 64;
@@ -521,7 +567,7 @@
             if (fishingRod.state == FishingRod.FISHING && fishingRod.fishHooked == false) {
                 for (let i = 0; i < fishes.entities.length; i++) {
                     let cur_fish = fishes.entities[i]
-                    if (Math.abs(cur_fish.position.x - (fishingRod.bobberX+10)) < 1 && Math.abs(cur_fish.position.y - (fishingRod.bobberY+25)) < 1.5 && Math.abs(cur_fish.position.z - (fishingRod.bobberZ+25.5)) < 1.5) {
+                    if (Math.abs(cur_fish.position.x - (fishingRod.bobberX+10)) < 2.0 && Math.abs(cur_fish.position.y - (fishingRod.bobberY+25)) < 2.0 && Math.abs(cur_fish.position.z - (fishingRod.bobberZ+25.5)) < 2.0) {
                         if (cur_fish.state == Fish.SWIMMING) {
                             fishingRod.fishHooked = true;
                             cur_fish.state = Fish.HOOKED;

@@ -8,7 +8,7 @@ class FishingRod extends Entity {
     static RELEASING = 2;
     static FISHING = 3;
     static REELING = 4;
-    static REELSPEED = 1.0;
+    static REELSPEED = 1.2;
 
     constructor(center, scale_factor) {
 
@@ -21,8 +21,8 @@ class FishingRod extends Entity {
         this.bobberY = 0.0;
         this.bobberZ = 0.0;
         this.launchSpdX = 0.0;
-        this.launchSpdY = 20.0;
-        this.launchSpdZ = 15.0;
+        this.launchSpdY = 30.0;
+        this.launchSpdZ = 10.0;
         this.g = -10.0;
         this.startTime = 0.0;
         this.center = center;
