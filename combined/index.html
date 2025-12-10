@@ -23,12 +23,6 @@
         border: 1px solid #444;
         }
 
-        .switch-container {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
         #river-material {
             width: 40px;
             height: 20px;
@@ -107,10 +101,11 @@
         </table>
 
         <label for="river-material">River Material:</label>
-        <div class="switch-container">
-            <input type="checkbox" id="river-material">
-            <span id="material-label">DIFFUSE</span>
-        </div>
+        <select id="river-material" style="width: 100px; border-radius: 0px">
+        <option value="diffuse">DIFFUSE</option>
+        <option value="refractive">REFRACTIVE</option>
+        <option value="reflective">REFLECTIVE</option>
+        </select>
 
     </div>
     </div>
@@ -306,12 +301,26 @@
     let gameWon;
     let deltaTime;
 
-    const checkbox = document.getElementById('river-material');
-    const label = document.getElementById('material-label');
+    const dropdown = document.getElementById('river-material');
 
-    checkbox.addEventListener('change', () => {
-        label.textContent = checkbox.checked ? 'REFRACTIVE' : 'DIFFUSE';
-        river.riverNode.primitive.material = checkbox.checked ? MATERIALS.REFRACTIVE : MATERIALS.DIFFUSE;
+    dropdown.addEventListener('change', () => {
+        const value = dropdown.value;
+
+        // Update primitive material
+        console.log(value);
+        switch (value) {
+            case "diffuse":
+                river.riverNode.primitive.material = MATERIALS.DIFFUSE;
+                break;
+
+            case "refractive":
+                river.riverNode.primitive.material = MATERIALS.REFRACTIVE;
+                break;
+
+            case "reflective":
+                river.riverNode.primitive.material = MATERIALS.REFLECTIVE;
+                break;
+        }
     });
 
     document.addEventListener('keydown', e => {
