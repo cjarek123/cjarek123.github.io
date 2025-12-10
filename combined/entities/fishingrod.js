@@ -10,10 +10,9 @@ class FishingRod extends Entity {
     static REELING = 4;
     static REELSPEED = 1.0;
 
-    fishHooked = false;
     hookedFishWeight = 0.0;
 
-    constructor(color, center, scale_factor) {
+    constructor(center, scale_factor) {
 
         super();
 
@@ -32,20 +31,21 @@ class FishingRod extends Entity {
         this.scale_factor = scale_factor;
         this.handle_angle = Math.PI / 2;
         this.symbolicWaterHeight = -32.5 + this.center.z;
+        this.fishHooked = false;
 
         // primitives
-        let rodBase = new Cylinder(color, scale_factor*0.2, scale_factor*3.0, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let rodArm = new Cylinder(color, scale_factor*0.1, scale_factor*10.0, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let coreCylinder = new Cylinder(color, scale_factor*0.5, scale_factor*1.0, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let coreSphere = new Ellipsoid(color, new Vec3(scale_factor*0.5, scale_factor*0.5, scale_factor*0.5), MATERIALS.DIFFUSE, 0.0, 0.0);
-        let handleBase = new Cylinder(color, scale_factor*0.1, scale_factor*0.5, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let handleArm = new Cylinder(color, scale_factor*0.1, scale_factor*0.5, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let handleGrip = new Cylinder(color, scale_factor*0.1, scale_factor*0.5, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let ring1 = new Torus(color, scale_factor*0.2, scale_factor*0.03, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let ring2 = new Torus(color, scale_factor*0.2, scale_factor*0.03, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let ring3 = new Torus(color, scale_factor*0.2, scale_factor*0.03, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let ring4 = new Torus(color, scale_factor*0.2, scale_factor*0.03, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let ring5 = new Torus(color, scale_factor*0.2, scale_factor*0.03, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let rodBase = new Cylinder(new Vec3(0.0, 0.0, 0.0), scale_factor*0.2, scale_factor*3.0, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let rodArm = new Cylinder(new Vec3(0.3, 0.3, 0.3), scale_factor*0.1, scale_factor*10.0, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let coreCylinder = new Cylinder(new Vec3(0.3, 0.3, 0.3), scale_factor*0.5, scale_factor*1.0, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let coreSphere = new Ellipsoid(new Vec3(0.0, 0.0, 0.0), new Vec3(scale_factor*0.5, scale_factor*0.5, scale_factor*0.5), MATERIALS.DIFFUSE, 0.0, 0.0);
+        let handleBase = new Cylinder(new Vec3(0.0, 0.0, 0.0), scale_factor*0.1, scale_factor*0.5, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let handleArm = new Cylinder(new Vec3(0.0, 0.0, 0.0), scale_factor*0.1, scale_factor*0.5, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let handleGrip = new Cylinder(new Vec3(0.0, 0.0, 0.0), scale_factor*0.1, scale_factor*0.5, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let ring1 = new Torus(new Vec3(0.3, 0.3, 0.3), scale_factor*0.2, scale_factor*0.03, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let ring2 = new Torus(new Vec3(0.3, 0.3, 0.3), scale_factor*0.2, scale_factor*0.03, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let ring3 = new Torus(new Vec3(0.3, 0.3, 0.3), scale_factor*0.2, scale_factor*0.03, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let ring4 = new Torus(new Vec3(0.3, 0.3, 0.3), scale_factor*0.2, scale_factor*0.03, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let ring5 = new Torus(new Vec3(0.3, 0.3, 0.3), scale_factor*0.2, scale_factor*0.03, MATERIALS.DIFFUSE, 0.0, 0.0);
         let stringA = new Cylinder(new Vec3(0.7, 0.7, 0.7), scale_factor*0.02, scale_factor*2.0, MATERIALS.DIFFUSE, 0.0, 0.0);
         let stringB = new Cylinder(new Vec3(0.7, 0.7, 0.7), scale_factor*0.02, scale_factor*5.0, MATERIALS.DIFFUSE, 0.0, 0.0);
         let stringC = new Cylinder(new Vec3(0.7, 0.7, 0.7), scale_factor*0.02, scale_factor*1.0, MATERIALS.DIFFUSE, 0.0, 0.0);

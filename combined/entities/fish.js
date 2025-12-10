@@ -16,7 +16,7 @@ class Fish extends Entity {
         this.color = Fish.hsv2rgb(Math.random() * 360, 1.0, 1.0);
         this.scale_factor = Math.sqrt(Math.random()) * (9.0 - 5.0) + 1.0;
         this.direction = Math.random() < 0.5 ? -1 : 1;
-        this.position = new Vec3(Math.random() * 360 - 180, Math.random() * (115 - 30) + 30, 2.0); 
+        this.position = new Vec3(10.0, 70, 2.0); 
 
         // primitives
         let fishBody = new Ellipsoid(this.color, new Vec3(1.0, 1.0, 1.0), MATERIALS.DIFFUSE, .0, .0);
@@ -75,21 +75,21 @@ class Fish extends Entity {
                     this.fishBodyNode.primitive.color = this.color;
                     this.scale_factor = Math.sqrt(Math.random()) * (9.0 - 5.0) + 1.0;
                     this.direction = Math.random() < 0.5 ? -1 : 1;
-                    this.position.x = (-this.direction) * 160.0;
-                    this.position.y =  Math.random() * (115 - 30) + 30;
+                    this.position.x = 10;
+                    this.position.y =  70;
                 }
 
                 this.fishBodyNode.localMatrix.translate(this.position.x, this.position.y, this.position.z);
                 this.fishBodyNode.updateWorldMatrix();
                 break;
 
-            // case Fish.HOOKED:
-            //     if(rod.state == fishingRod.IDLE){
-            //         this.state = fish.CAUGHT;
-            //         rod.fishHooked = false;
-            //         rod.hookedWeight = 0.0;
-            //     }
-            //     break;
+            case Fish.HOOKED:
+                
+                this.fishBodyNode.localMatrix = new Matrix4();
+                this.fishBodyNode.localMatrix.scale(this.scale_factor*1.5, this.scale_factor*0.2, this.scale_factor*0.5);
+                this.fishBodyNode.localMatrix.translate(this.position.x, this.position.y, this.position.z);
+                this.fishBodyNode.updateWorldMatrix();
+                break;
 
             // case Fish.CAUGHT:
             //     //record size and reset fish

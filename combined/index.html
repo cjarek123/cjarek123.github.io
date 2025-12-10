@@ -198,7 +198,7 @@
     /**
      * Entity instantiation
      */
-    let fishingRod, fishes;
+    let fishingRod, fishes, rods, docks, rivers, grassBlocks, pineTrees;
 
     /**
      * Initialize the entities of the game
@@ -206,47 +206,47 @@
     function initEntities() {
         // fishes in scene
         fishes = new Entities(); // defines the entities/objects of the scene/game
-        for (let i = 0; i < 14; i++) {
+        for (let i = 0; i < 1; i++) {
             let fish = new Fish();
             fishes.addEntity(fish);
         }
         // fishing rod
-        const rods = new Entities();
-        fishingRod = new FishingRod(new Vec3(0.0, 0.0, 1.0), new Vec3(10.0, 22.0, 9.0), 2.0);
+        rods = new Entities();
+        fishingRod = new FishingRod(new Vec3(10.0, 22.0, 9.0), 2.0);
         rods.addEntity(fishingRod);
         // dock
-        const docks = new Entities();
+        docks = new Entities();
         let dock = new Dock(new Vec3(0.396, 0.263, 0.129), new Vec3(0.0, 9.0, 3.0), 1.0);
         docks.addEntity(dock);
         // river
-        const rivers = new Entities();
+        rivers = new Entities();
         let river = new River(new Vec3(0.1, 0.75, 0.95), new Vec3(1.0, 1.0, 1.0), new Vec3(0.0, 70.0, 0.0), 1.0);
         rivers.addEntity(river);
         // grass
-        const grassBlocks = new Entities();
+        grassBlocks = new Entities();
         let grassBlock1 = new Grass(new Vec3(0.0, 0.6, 0.05), new Vec3(0.0, -50.0, 2.0), 1.0);
         let grassBlock2 = new Grass(new Vec3(0.0, 0.6, 0.05), new Vec3(0.0, 190.0, 2.0), 1.0);
         grassBlocks.addEntity(grassBlock1);
         grassBlocks.addEntity(grassBlock2);
         // pine trees
-        const pineTrees = new Entities();
+        pineTrees = new Entities();
         let pineTree1 = new PineTree(new Vec3(0.18, 0.12, 0.05), new Vec3(0.0, 0.10, 0.0), new Vec3(50.0, 160 + Math.random() * 30, 7.0), 1.0);
         let pineTree2 = new PineTree(new Vec3(0.18, 0.12, 0.05), new Vec3(0.0, 0.10, 0.0), new Vec3(-50.0, 160 + Math.random() * 30, 7.0), 1.0);
         pineTrees.addEntity(pineTree1);
         pineTrees.addEntity(pineTree2);
         // merge entities
-        const entities = new Entities();
-        entities.addEntities(fishes); // 14 prim
-        entities.addEntities(docks); // 2 prim
-        entities.addEntities(rivers); // 2 prim
-        entities.addEntities(grassBlocks); // 2 prim
-        entities.addEntities(pineTrees); // 12 prim
-        entities.addEntities(rods); // 18 prim
-        return entities; // max is 40
+        let local_entities = new Entities();
+        local_entities.addEntities(fishes); // 14 prim
+        local_entities.addEntities(docks); // 2 prim
+        local_entities.addEntities(rivers); // 2 prim
+        local_entities.addEntities(grassBlocks); // 2 prim
+        local_entities.addEntities(pineTrees); // 12 prim
+        local_entities.addEntities(rods); // 18 prim
+        return local_entities; // max is 40
     }
     
     // entities
-    const entities = initEntities();
+    let entities = initEntities();
 
 </script>
 
@@ -490,22 +490,71 @@
         };
 
         function fishingRodGameLogic() {
-            if(fishingRod.state == FishingRod.IDLE && fishingRod.hookedFishWeight != 0.0){
-                numCaught++;
-                totalWeight += fishingRod.hookedFishWeight;
-                if(fishingRod.hookedFishWeight > largestCatch){
-                    largestCatch = rod.hookedFishWeight;
+
+            // remove caught fishes from the river
+            let newFishes = new Entities()
+            for (let i = 0; i < fishes.entities.length; i++) {
+                let cur_fish = fishes.entities[i]
+                if (cur_fish.state != Fish.CAUGHT) {
+                    newFishes.addEntity(cur_fish);
                 }
-                if(smallestCatch == 0.0 || fishingRod.hookedFishWeight < smallestCatch){
-                    smallestCatch = fishingRod.hookedFishWeight;
-                }
-                numCaughtTxt.textContent = numCaught;
-                totalWeightTxt.textContent = totalWeight.toFixed(2);
-                largestCatchTxt.textContent = largestCatch.toFixed(2);
-                smallestCatchTxt.textContent = smallestCatch.toFixed(2);
-                console.log("You caught a fish weighing " + fishingRod.hookedFishWeight.toFixed(2) + " units!");
-                fishingRod.hookedFishWeight = 0.0;
             }
+            fishes = newFishes;
+            entities = new Entities();
+            entities.addEntities(fishes); // 14 prim
+            entities.addEntities(docks); // 2 prim
+            entities.addEntities(rivers); // 2 prim
+            entities.addEntities(grassBlocks); // 2 prim
+            entities.addEntities(pineTrees); // 12 prim
+            entities.addEntities(rods); // 18 prim
+
+            // FISHING state: try stopping and hooking a fish
+            if (fishingRod.state == FishingRod.FISHING && fishingRod.fishHooked == false) {
+                for (let i = 0; i < fishes.entities.length; i++) {
+                    let cur_fish = fishes.entities[i]
+                    if (Math.abs(cur_fish.position.x - (fishingRod.bobberX+10)) < 1 && Math.abs(cur_fish.position.y - (fishingRod.bobberY+25)) < 1.5 && Math.abs(cur_fish.position.z - (fishingRod.bobberZ+25.5)) < 1.5) {
+                        if (cur_fish.state == Fish.SWIMMING) {
+                            cur_fish.state = Fish.HOOKED;
+                        }
+                    }
+                }
+            } 
+            // REELING state: when reeling pull the attached fish
+            else if (fishingRod.state == FishingRod.REELING) {
+                for (let i = 0; i < fishes.entities.length; i++) {
+                    let cur_fish = fishes.entities[i]
+                    if (cur_fish.state == Fish.HOOKED) {
+                        cur_fish.position.y = fishingRod.bobberY+25-1.5;
+                    }
+                }
+            }
+            // IDLE state
+            else if (fishingRod.state == FishingRod.IDLE) {
+                for (let i = 0; i < fishes.entities.length; i++) {
+                    let cur_fish = fishes.entities[i]
+                    if (cur_fish.state == Fish.HOOKED) {
+                        cur_fish.state = Fish.CAUGHT;
+                    }
+                }
+            }
+
+            // if(fishingRod.state == FishingRod.IDLE && fishingRod.hookedFishWeight != 0.0){
+            //     console.log("fish captures and reeled in")
+            //     numCaught++;
+            //     totalWeight += fishingRod.hookedFishWeight;
+            //     if(fishingRod.hookedFishWeight > largestCatch){
+            //         largestCatch = rod.hookedFishWeight;
+            //     }
+            //     if(smallestCatch == 0.0 || fishingRod.hookedFishWeight < smallestCatch){
+            //         smallestCatch = fishingRod.hookedFishWeight;
+            //     }
+            //     numCaughtTxt.textContent = numCaught;
+            //     totalWeightTxt.textContent = totalWeight.toFixed(2);
+            //     largestCatchTxt.textContent = largestCatch.toFixed(2);
+            //     smallestCatchTxt.textContent = smallestCatch.toFixed(2);
+            //     console.log("You caught a fish weighing " + fishingRod.hookedFishWeight.toFixed(2) + " units!");
+            //     fishingRod.hookedFishWeight = 0.0;
+            // }
         }
 
         // // for debugging
