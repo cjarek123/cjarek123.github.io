@@ -34,7 +34,7 @@ class FishingRod extends Entity {
         // primitives
         let rodBase = new Cylinder(new Vec3(0.0, 0.0, 0.0), scale_factor*0.2, scale_factor*3.0, MATERIALS.DIFFUSE, 0.0, 0.0);
         let rodArm = new Cylinder(new Vec3(0.3, 0.3, 0.3), scale_factor*0.1, scale_factor*10.0, MATERIALS.DIFFUSE, 0.0, 0.0);
-        let coreCylinder = new Cylinder(new Vec3(0.3, 0.3, 0.3), scale_factor*0.5, scale_factor*1.0, MATERIALS.DIFFUSE, 0.0, 0.0);
+        let coreCylinder = new Cylinder(new Vec3(0.3, 0.3, 0.3), scale_factor*0.5, scale_factor*1.0, MATERIALS.REFLECTIVE, 0.3, 0.0);
         let coreSphere = new Ellipsoid(new Vec3(0.0, 0.0, 0.0), new Vec3(scale_factor*0.5, scale_factor*0.5, scale_factor*0.5), MATERIALS.DIFFUSE, 0.0, 0.0);
         let handleBase = new Cylinder(new Vec3(0.0, 0.0, 0.0), scale_factor*0.1, scale_factor*0.5, MATERIALS.DIFFUSE, 0.0, 0.0);
         let handleArm = new Cylinder(new Vec3(0.0, 0.0, 0.0), scale_factor*0.1, scale_factor*0.5, MATERIALS.DIFFUSE, 0.0, 0.0);

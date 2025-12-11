@@ -60,54 +60,93 @@
 <body>
 
     <h2>CS 412/512 Final Project - Fishing Game</h2>
-  <div style="display: flex; gap: 10px; align-items: flex-start;">
-    <div style="display: flex; flex-direction: column;">
-      <h2>Hold SPACE to begin!</h2>
-      <div><canvas id="glCanvas" width="800" height="550"></canvas></div>
-      <div><meter id="charge-meter" value ="0" min="0" max="1" low="0.3" high="0.7" optimum="0.8" style="width: 800px; height: 50px;"></meter></div>
-    </div>
+    <div style="display: flex; gap: 10px; align-items: flex-start;">
+        <div style="display: flex; flex-direction: column;">
+            <h2>Hold SPACE to begin!</h2>
+            <div>
+                <canvas id="glCanvas" width="800" height="550"></canvas>
+            </div>
+            <div>
+                <meter id="charge-meter" value ="0" min="0" max="1" low="0.3" high="0.7" optimum="0.8" style="width: 800px; height: 50px;"></meter>
+            </div>
+        </div>
+        <div class="vbox">
 
-        <table>
+            <table>
+                <tr style="vertical-align:top;">
+                    <tr><td colspan="3"><h2>Time Left</h2></td>
+                </tr>
+                <tr>
+                    <td id="seconds-left" width="100px" style="font-size: 32px;">60.0</td>
+                </tr>
+            </table>
+        
+            <table>
             <tr style="vertical-align:top;">
-                <tr><td colspan="3"><h2>Time Left</h2></td>
+                <tr><td colspan="3"><h2>Scoreboard</h2></td>
             </tr>
             <tr>
-                <td id="seconds-left" width="100px" style="font-size: 32px;">60.0</td>
+                <td>Number of Fish Caught:</td>
+                <td width="30px" style="white-space: nowrap;">
+                    <span id="num-caught">0</span> / 10
+                </td>
             </tr>
-        </table>
-    
-        <table>
-        <tr style="vertical-align:top;">
-            <tr><td colspan="3"><h2>Scoreboard</h2></td>
-        </tr>
-        <tr>
-            <td>Number of Fish Caught:</td>
-            <td width="30px" style="white-space: nowrap;">
-                <span id="num-caught">0</span> / 10
-            </td>
-        </tr>
-        <tr>
-            <td>Total Weight: </td>
-            <td id="total-weight" width="30px">0.0</td>
-        </tr>
-        <tr>
-            <td>Largest Catch:</td>
-            <td id="largest-catch" width="30px">0.0</td>
-        </tr>
-        <tr>
-            <td>Smallest Catch:</td>
-            <td id="smallest-catch" width="30px">0.0</td>
-        </tr>
-        </table>
+            <tr>
+                <td>Total Weight: </td>
+                <td id="total-weight" width="30px">0.0</td>
+            </tr>
+            <tr>
+                <td>Largest Catch:</td>
+                <td id="largest-catch" width="30px">0.0</td>
+            </tr>
+            <tr>
+                <td>Smallest Catch:</td>
+                <td id="smallest-catch" width="30px">0.0</td>
+            </tr>
+            </table>
 
-        <label for="river-material">River Material:</label>
-        <select id="river-material" style="width: 100px; border-radius: 0px">
-        <option value="diffuse">DIFFUSE</option>
-        <option value="refractive">REFRACTIVE</option>
-        <option value="reflective">REFLECTIVE</option>
-        </select>
+            <div style="margin-top: 25px;">
+                <label for="river-material">River Material:</label>
+                <select id="river-material" style="width: 100px; border-radius: 0px">
+                    <option value="refractive">REFRACTIVE</option>
+                    <option value="diffuse">DIFFUSE</option>
+                    <option value="reflective">REFLECTIVE</option>
+                </select>
 
-    </div>
+                <table>
+                    <tr>
+                        <td>Refractive Index</td>
+                        <td>
+                            <input
+                                id="refrIndex"
+                                type="range"
+                                min="0.0"
+                                max="2.0"
+                                step="0.01"
+                                value="0.70"
+                                oninput="document.getElementById('refrValue').textContent = this.value">
+                        </td>
+                        <td id="refrValue">0.70</td>
+                    </tr>
+
+                    <tr>
+                        <td>Reflectivity</td>
+                        <td>
+                            <input
+                                id="reflectivity"
+                                type="range"
+                                min="0.0"
+                                max="1.0"
+                                step="0.01"
+                                value="0.50"
+                                oninput="document.getElementById('reflValue').textContent = this.value">
+                        </td>
+                        <td id="reflValue">0.50</td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
     </div>
   </div>
 
@@ -615,6 +654,12 @@
                     }
                 }
             }
+
+            // update river
+            let refr = parseFloat(document.getElementById("refrIndex").value);
+            let refl = parseFloat(document.getElementById("reflectivity").value);
+            river.riverNode.primitive.refractiveIndex = refr;
+            river.riverNode.primitive.reflectivity = refl;
         }
 
         let startTime = Date.now();
