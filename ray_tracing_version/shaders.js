@@ -39,7 +39,7 @@ const fsSource = `#version 300 es
         float field3;
         int pad1;//padding
     };
-    // Uniform Block Index
+    // Uniform Block Buffer
     layout(std140) uniform PrimitiveBlock {
         Primitive primitives[70];
         int primitiveCount;
@@ -115,7 +115,7 @@ const fsSource = `#version 300 es
         
         // Transform ray into local space
         mat4 invM = inverse(worldMatrix);
-        vec3 O  = (invM * vec4(ray.origin,    1.0)).xyz;
+        vec3 O  = (invM * vec4(ray.origin, 1.0)).xyz;
         vec3 D0 = (invM * vec4(ray.direction, 0.0)).xyz;
 
         float scale = length(D0);

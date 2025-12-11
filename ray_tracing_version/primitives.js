@@ -85,7 +85,7 @@ window.Torus = Torus;
 /**
  * Packs the data from a node/primitive into a struct for the UBO
  */
-function packPrimitive(view, offset, node) { // size was 176 now?
+function packPrimitive(view, offset, node) {
     
     // extract the data
     const primitive = node.primitive;
@@ -150,7 +150,7 @@ function packPrimitive(view, offset, node) { // size was 176 now?
             field3 = -1;
     }
 
-    // shape math fields (4 data)
+    // radius, height, dimensions, etc (4 data)
     f32[base++] = field1;
     f32[base++] = field2;
     f32[base++] = field3;
